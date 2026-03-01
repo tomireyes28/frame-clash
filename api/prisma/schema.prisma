@@ -1,14 +1,124 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Rarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+enum GameMode {
+  ARCADE
+  ROGUELITE
+  DUEL
+}
+
+enum TriggerType {
+  CURRENT_QUESTION // Ej: Elimina 1 opción ahora
+  NEXT_QUESTION    // Ej: En la próxima, elimina 2
+  PASSIVE          // Ej: +10% de bonus pasivo
+  ROUND            // Ej: 1 pregunta extra en la ronda
+}
+
+enum ConditionType {
+  NONE
+  ON_WIN           // "Si aciertas..."
+  ON_LOSS          // "Si fallas..."
+  IS_CATEGORY      // "Si es de Categoría X..."
+  IS_NOT_CATEGORY  // "Si no es de Categoría X..."
+}
+
+enum ActionType {
+  REMOVE_OPTION
+  EXTRA_CHANCE      // "Intentar 1 vez más"
+  REVEAL_ANSWER
+  MULTIPLY_TIME
+  MULTIPLY_SCORE
+  CHANGE_CATEGORY   // Cambiar la categoría de la pregunta
+  ADD_QUESTION      // "1 pregunta extra en la ronda"
+  REMOVE_QUESTION
+}
+
+// ==========================================
+// 2. MODELOS PRINCIPALES
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?   
+  image         String?
+  role          Role      @default(USER)
+  
+  coins         Int       @default(0)
+  gems          Int       @default(0) 
+  level         Int       @default(1)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      GameSession[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  key         String   @unique 
+  tmdbId      Int?     
+  
+  createdAt   DateTime @default(now())
+  cardsWithPowerUp Card[] @relation("PowerUpCategory")
+}
+
+model Card {
+  id            String   @id @default(cuid())
+  tmdbId        Int      @unique
+  title         String
+  year          Int
+  posterPath    String?
+  rarity        Rarity   @default(COMMON)
+  
+  // === TU MATRIZ DE POWER-UPS (El Sistema Lego) ===
+  powerUpTrigger   TriggerType?    // ¿Cuándo se activa? (Ej: NEXT_QUESTION)
+  powerUpCondition ConditionType?  // ¿Qué debe pasar? (Ej: ON_WIN)
+  powerUpAction    ActionType?     // ¿Qué hace? (Ej: REMOVE_OPTION)
+  powerUpValue     Int?            // El número (Ej: 2 opciones, x3 bonus)
+  
+  // Si el poder requiere una categoría (Ej: "Cambiar por otra de Terror"), la vinculamos acá:
+  targetCategoryId String?
+  targetCategory   Category? @relation("PowerUpCategory", fields: [targetCategoryId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==========================================
+// 3. HISTORIAL Y PARTIDAS
+// ==========================================
+
+model GameSession {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  mode        GameMode @default(ARCADE)
+  score       Int      @default(0)
+  auditLog    Json?    
+
+  createdAt   DateTime @default(now())
 }
