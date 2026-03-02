@@ -14,6 +14,9 @@ export interface TmdbMovieDetails {
   title: string;
   release_date: string;
   tagline: string;
+  revenue: number;  
+  budget: number;  
+  runtime: number;  
   credits?: {
     cast: TmdbCast[];
     crew: TmdbCrew[];
