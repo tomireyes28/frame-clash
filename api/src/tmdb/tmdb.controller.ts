@@ -1,6 +1,7 @@
 // api/src/tmdb/tmdb.controller.ts
 import { Controller, Get, Query } from '@nestjs/common';
-import { TmdbService, TmdbMovie } from './tmdb.service';
+import { TmdbService } from './tmdb.service';
+import { TmdbMovie } from './interfaces/tmdb.interface';
 
 @Controller('tmdb')
 export class TmdbController {

@@ -2,12 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
-
-export type CreateUserFromGoogleDto = {
-  email: string;
-  name: string;
-  image: string;
-};
+import { CreateUserFromGoogleDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {

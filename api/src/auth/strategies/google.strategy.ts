@@ -3,21 +3,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import 'dotenv/config';
-
-// Creamos nuestro tipo estricto
-export type GoogleUser = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture: string;
-  accessToken: string;
-};
+import type { GoogleUser } from '../interfaces/auth.interface';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor() {
     super({
-      // Le agregamos el || '' para asegurarle a TS que nunca será undefined
       clientID: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
       callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`,
@@ -25,14 +16,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  // Usamos el tipo Profile oficial y sacamos el async porque no hay promesas adentro
   validate(
     accessToken: string,
     refreshToken: string,
     profile: Profile,
   ): GoogleUser {
     const { name, emails, photos } = profile;
-    // Armamos el objeto respetando la interfaz GoogleUser
     const user: GoogleUser = {
       email: emails?.[0]?.value || '',
       firstName: name?.givenName || '',
@@ -40,7 +29,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       picture: photos?.[0]?.value || '',
       accessToken,
     };
-    // NestJS permite retornar el usuario directamente sin usar el callback (done)
     return user;
   }
 }

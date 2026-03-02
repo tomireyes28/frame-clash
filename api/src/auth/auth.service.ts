@@ -2,7 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { GoogleUser } from './strategies/google.strategy';
+import { GoogleUser } from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
