@@ -27,7 +27,7 @@ export interface DiscoverQueryParams {
   language: string;
   page: number;
   sort_by: string;
-  'vote_count.gte': number;
+  'vote_count.gte'?: number;
   include_adult: boolean;
   with_genres?: string;
   'primary_release_date.gte'?: string;
@@ -81,7 +81,6 @@ export class TmdbService {
       language: 'es-ES',
       page: 1,
       sort_by: 'vote_count.desc', 
-      'vote_count.gte': 3000,
       include_adult: false,
     };
 
@@ -89,7 +88,6 @@ export class TmdbService {
       queryParams.with_genres = genreId;
     }
 
-    // TMDB pide formato YYYY-MM-DD. Si nos pasan "1980", armamos "1980-01-01"
     if (minYear) {
       queryParams['primary_release_date.gte'] = `${minYear}-01-01`;
     }

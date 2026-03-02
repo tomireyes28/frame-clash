@@ -28,5 +28,12 @@ export const CardsService = {
     }
 
     return res.json();
+  },
+
+  getAllCards: async () => {
+    const res = await fetch(`${API_URL}/admin/cards`);
+    if (!res.ok) throw new Error('Error al obtener el inventario de cartas');
+    return res.json();
   }
+
 };

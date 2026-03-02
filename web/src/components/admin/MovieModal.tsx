@@ -57,6 +57,7 @@ export default function MovieModal({ movie, onClose, onSave }: MovieModalProps) 
                 className="w-full bg-[#0f3a61] border border-gray-600 text-white rounded p-3 focus:outline-none focus:border-[#E50914]"
               >
                 <option value="COMMON">⚪ Común (60% Drop)</option>
+                <option value="UNCOMMON">🟢 Poco Común (30% Drop)</option>
                 <option value="RARE">🔵 Rara (25% Drop)</option>
                 <option value="EPIC">🟣 Épica (10% Drop)</option>
                 <option value="LEGENDARY">🟡 Legendaria (5% Drop)</option>

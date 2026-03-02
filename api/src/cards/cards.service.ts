@@ -29,4 +29,9 @@ export class CardsService {
       },
     });
   }
+
+  // NUEVO: Trae todas las cartas para las estadísticas y validación visual
+  async findAll(): Promise<Card[]> {
+    return this.prisma.card.findMany();
+  }
 }
