@@ -20,14 +20,6 @@ export interface TmdbMovieDetails {
   };
 }
 
-export interface GeneratedQuestion {
-  pelicula: string;
-  dificultad: string;
-  pregunta: string;
-  respuestaCorrecta: string;
-  opcionesFalsas: string[];
-}
-
 export interface TmdbMovie {
   id: number;
   title: string;

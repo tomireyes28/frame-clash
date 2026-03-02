@@ -22,9 +22,4 @@ export class TmdbController {
     return this.tmdbService.searchMovie(query);
   }
 
-  @Get('test-generator')
-  async testGenerator() {
-    // Delegamos toda la responsabilidad lógica al servicio (SRP)
-    return this.tmdbService.generateTestQuestions();
-  }
 }
