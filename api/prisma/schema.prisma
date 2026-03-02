@@ -123,6 +123,7 @@ model Question {
   options       String[]   // Array con las 3 opciones falsas + la correcta (mezcladas luego)
   difficulty    Difficulty
   cardId        String?    // Relación opcional a la carta/película
+  categories    String[]   // NUEVO: Ej ["28", "decada-2000"]
   
 }
 
