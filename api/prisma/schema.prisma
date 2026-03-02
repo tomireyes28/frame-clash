@@ -14,6 +14,14 @@ enum Role {
   ADMIN
 }
 
+enum Difficulty {
+  VERY_EASY
+  EASY
+  NORMAL
+  HARD
+  VERY_HARD
+}
+
 enum Rarity {
   COMMON
   UNCOMMON
@@ -105,6 +113,17 @@ model Card {
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+
+model Question {
+  id            String     @id @default(cuid())
+  text          String     // "La pregunta en sí"
+  correctAnswer String     // "La respuesta correcta"
+  options       String[]   // Array con las 3 opciones falsas + la correcta (mezcladas luego)
+  difficulty    Difficulty
+  cardId        String?    // Relación opcional a la carta/película
+  
 }
 
 // ==========================================
