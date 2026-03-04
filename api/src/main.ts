@@ -7,15 +7,14 @@ async function bootstrap() {
 
   // NUEVO: Le damos permiso a tu frontend para consumir la API
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-    credentials: true,
   });
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Filtra cualquier dato basura que manden extra
-      forbidNonWhitelisted: true, // Tira error si mandan datos no definidos en el DTO
-      transform: true, // Transforma los tipos automáticamente (ej: strings a números si corresponde)
+      whitelist: true,
+      transform: true,
+      // Comenta esta línea solo para probar:
+      // forbidNonWhitelisted: true, 
     }),
   );
 
