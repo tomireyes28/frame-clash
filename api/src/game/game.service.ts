@@ -1,4 +1,3 @@
-// api/src/game/game.service.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { hashAnswer } from './utils/hash.util';
@@ -9,7 +8,6 @@ import { GameRoundResponse, SafeQuestionPayload, PowerUpPayload } from './interf
 export class GameService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // AHORA EXIGIMOS QUE ESTA FUNCIÓN DEVUELVA ESTRICTAMENTE UN GameRoundResponse
   async generateRound(categoryId: string, amount: number = 10, userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<GameRoundResponse> {
     if (!categoryId) {
       throw new BadRequestException('El parámetro categoryId es obligatorio para iniciar una partida.');
@@ -27,7 +25,6 @@ export class GameService {
       .sort(() => 0.5 - Math.random())
       .slice(0, amount);
 
-    // Tipamos estrictamente el array de preguntas seguras
     const safeRound: SafeQuestionPayload[] = selectedQuestions.map((q) => {
       return {
         id: q.id,
@@ -38,11 +35,9 @@ export class GameService {
       };
     });
 
-    // NUEVO 4. Buscamos el arsenal equipado para el modo ARCADE
     const equippedCards = await this.prisma.userCard.findMany({
       where: {
         userId: userId,
-        // AHORA BUSCAMOS SI EL ARRAY CONTIENE EL MODO ACTUAL
         equippedModes: {
           has: 'ARCADE' 
         }
@@ -52,7 +47,6 @@ export class GameService {
       }
     });
 
-    // Tipamos estrictamente el array de poderes
     const powerUps: PowerUpPayload[] = equippedCards.map(uc => ({
       id: uc.card.id,
       title: uc.card.title,
@@ -111,6 +105,44 @@ export class GameService {
       isAdjusted = true;
     }
 
+    // =========================================================
+    // NUEVO: AUDITORÍA DE NIVELES (El "Síndrome del Elixir")
+    // =========================================================
+    if (data.usedPowerUps && data.usedPowerUps.length > 0) {
+      // 1. Contamos cuántas veces usó cada carta en esta ronda (ej: { "id_thanos": 2 })
+      const usageCount: Record<string, number> = {};
+      for (const powerUpId of data.usedPowerUps) {
+        usageCount[powerUpId] = (usageCount[powerUpId] || 0) + 1;
+      }
+
+      const uniquePowerUpIds = Object.keys(usageCount);
+
+      // 2. Buscamos esas cartas en su inventario para el modo ARCADE
+      const userCards = await this.prisma.userCard.findMany({
+        where: {
+          userId: data.userId,
+          cardId: { in: uniquePowerUpIds },
+          quantity: { gt: 0 },
+          equippedModes: { has: 'ARCADE' }
+        }
+      });
+
+      // 3. Verificamos que realmente tenga todas las que intentó usar
+      if (userCards.length !== uniquePowerUpIds.length) {
+        throw new BadRequestException('Intento de fraude: Cartas no equipadas o no poseídas.');
+      }
+
+      // 4. Verificamos que no haya superado el límite de usos según su NIVEL
+      for (const userCard of userCards) {
+        const usesInRound = usageCount[userCard.cardId];
+        if (usesInRound > userCard.level) {
+          throw new BadRequestException(`Intento de fraude: Usó la carta ${userCard.cardId} ${usesInRound} veces, pero su nivel es ${userCard.level}.`);
+        }
+      }
+      // ¡Pasó la prueba! No descontamos la carta de la DB, la puede volver a usar en la próxima partida.
+    }
+    // =========================================================
+
     const session = await this.prisma.gameSession.create({
       data: {
         userId: data.userId, 
@@ -135,35 +167,28 @@ export class GameService {
     };
   }
 
-  // BUSCAR EL INVENTARIO COMPLETO DEL USUARIO
   async getUserInventory(userId: string = 'cmm8bj5pr0000n49toufqk6gd') {
-    // Buscamos todas las cartas que el usuario tiene en el bolsillo
     const userCards = await this.prisma.userCard.findMany({
       where: { userId: userId },
       include: {
-        card: true, // Hacemos el JOIN para traer la info de la película
+        card: true, 
       },
       orderBy: {
-        createdAt: 'desc' // Las más nuevas primero
+        createdAt: 'desc' 
       }
     });
 
-    // Mapeamos los datos para mandar un JSON limpio al frontend
     return userCards.map(uc => ({
-      id: uc.card.id, // El ID real de la carta
+      id: uc.card.id, 
       title: uc.card.title,
       year: uc.card.year,
       posterPath: uc.card.posterPath,
       rarity: uc.card.rarity,
       powerUpAction: uc.card.powerUpAction,
       powerUpValue: uc.card.powerUpValue,
-      
-      // Info específica del jugador
       quantity: uc.quantity,
       level: uc.level,
-      equippedModes: uc.equippedModes, // Acá viaja nuestro array ['ARCADE']
+      equippedModes: uc.equippedModes, 
     }));
   }
-
- 
 }

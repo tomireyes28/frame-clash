@@ -1,4 +1,3 @@
-// src/hooks/useGameEngine.ts
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore, Question, PowerUp } from '../store/useGameStore';
 import { validateAnswerHash } from '../utils/gameCrypto';
@@ -13,8 +12,6 @@ export const useGameEngine = (currentQuestion: Question | undefined) => {
   const [hiddenOptions, setHiddenOptions] = useState<string[]>([]);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // ELIMINAMOS EL useEffect que causaba el error de cascada.
 
   const processAnswer = useCallback((option: string, timeSpent: number, isTimeout: boolean = false) => {
     if (!currentQuestion) return;
@@ -36,7 +33,7 @@ export const useGameEngine = (currentQuestion: Question | undefined) => {
       setSelectedOption(null);
       setIsCorrect(null);
       setTimeLeft(10000);
-      setHiddenOptions([]); // <-- AHORA LO LIMPIAMOS ACÁ, junto con el resto del estado
+      setHiddenOptions([]); 
       advanceQuestion();
     }, 1500);
   }, [currentQuestion, answerQuestion, advanceQuestion]);
@@ -87,7 +84,7 @@ export const useGameEngine = (currentQuestion: Question | undefined) => {
         .slice(0, powerUp.value);
 
       setHiddenOptions(toHide);
-      consumePowerUp(powerUp.id);
+      consumePowerUp(powerUp.id); // Acá es donde la magia ocurre
     }
   }, [currentQuestion, selectedOption, consumePowerUp]);
 

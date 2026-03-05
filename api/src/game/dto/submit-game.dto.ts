@@ -1,5 +1,4 @@
-// api/src/game/dto/submit-game.dto.ts
-import { IsString, IsInt, IsArray, ValidateNested, Min, IsNotEmpty } from 'class-validator';
+import { IsString, IsInt, IsArray, ValidateNested, Min, IsNotEmpty, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // 1. Validamos cada "renglón" del log de respuestas
@@ -21,7 +20,7 @@ export class AnswerLogDto {
 export class SubmitGameDto {
   @IsString()
   @IsNotEmpty()
-  userId!: string; // Por ahora lo pedimos así, luego lo sacaremos del Token seguro de NextAuth
+  userId!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -33,6 +32,12 @@ export class SubmitGameDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => AnswerLogDto) // Le avisa a NestJS que valide el array usando la clase de arriba
+  @Type(() => AnswerLogDto)
   auditLog!: AnswerLogDto[];
+
+  // NUEVO: Array con los IDs de los poderes que usó en la partida
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  usedPowerUps?: string[];
 }

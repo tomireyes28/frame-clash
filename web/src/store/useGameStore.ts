@@ -1,4 +1,3 @@
-// src/store/useGameStore.ts
 import { create } from 'zustand';
 
 export interface Question {
@@ -31,11 +30,12 @@ interface GameState {
   score: number;
   auditLog: AuditLogEntry[];
   activePowerUps: PowerUp[];
+  usedPowerUps: string[]; // NUEVO: La "libretita" donde anotamos lo que gastamos
 
   startGame: (questions: Question[], powerUps: PowerUp[]) => void;
   answerQuestion: (logEntry: AuditLogEntry, pointsEarned: number) => void;
   advanceQuestion: () => void;
-  consumePowerUp: (id: string) => void; // NUEVO: Para "quemar" la carta usada
+  consumePowerUp: (id: string) => void; 
   resetGame: () => void;
 }
 
@@ -46,6 +46,7 @@ export const useGameStore = create<GameState>((set) => ({
   score: 0,
   auditLog: [],
   activePowerUps: [],
+  usedPowerUps: [], // Inicializamos vacío
 
   startGame: (questions, powerUps) => set({
     questions: questions,
@@ -54,6 +55,7 @@ export const useGameStore = create<GameState>((set) => ({
     currentIndex: 0,
     score: 0,
     auditLog: [],
+    usedPowerUps: [], // Vaciamos la libreta al empezar nueva partida
   }),
 
   answerQuestion: (logEntry, pointsEarned) => set((state) => ({
@@ -69,9 +71,10 @@ export const useGameStore = create<GameState>((set) => ({
     };
   }),
 
-  // NUEVO: Filtramos la carta que acabamos de usar para sacarla de la "mano"
+  // MAGIA ACÁ: Sacamos la carta de la mano Y anotamos su ID en la libreta
   consumePowerUp: (id) => set((state) => ({
-    activePowerUps: state.activePowerUps.filter(p => p.id !== id)
+    activePowerUps: state.activePowerUps.filter(p => p.id !== id),
+    usedPowerUps: [...state.usedPowerUps, id] 
   })),
 
   resetGame: () => set({
@@ -81,5 +84,6 @@ export const useGameStore = create<GameState>((set) => ({
     score: 0,
     auditLog: [],
     activePowerUps: [],
+    usedPowerUps: [], // Vaciamos
   }),
 }));

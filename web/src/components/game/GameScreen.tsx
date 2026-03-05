@@ -7,11 +7,9 @@ import { useGameEngine } from '@/hooks/useGameEngine';
 import { gameService, SubmitGameResponse } from '@/services/game.service';
 
 export default function GameScreen() {
-  // NUEVO: Traemos activePowerUps del store
   const { questions, currentIndex, status, score, activePowerUps } = useGameStore();
   const currentQuestion = questions[currentIndex];
   
-  // NUEVO: Extraemos hiddenOptions y activatePowerUp del motor
   const { timeLeft, selectedOption, isCorrect, hiddenOptions, handleOptionClick, activatePowerUp } = useGameEngine(currentQuestion);
 
   const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -22,11 +20,13 @@ export default function GameScreen() {
       const submitTimer = setTimeout(() => {
         setSubmitState('loading');
         
+        // MAGIA FINAL: Sumamos usedPowerUps al paquete que viaja al Juez
         const payload = {
           userId: 'cmm8bj5pr0000n49toufqk6gd', 
           categoryId: '28', 
           claimedScore: score,
           auditLog: useGameStore.getState().auditLog, 
+          usedPowerUps: useGameStore.getState().usedPowerUps, // <-- ¡El cable que faltaba!
         };
 
         gameService.submitRound(payload)
@@ -101,7 +101,6 @@ export default function GameScreen() {
 
       <div className="w-full max-w-md grid grid-cols-1 gap-4">
         {currentQuestion.options.map((option, idx) => {
-          // LA MAGIA DEL CHASQUIDO: Si está en hiddenOptions, hacemos el botón invisible
           if (hiddenOptions.includes(option)) {
             return <div key={idx} className="w-full py-4 px-6 invisible" />;
           }
@@ -127,7 +126,6 @@ export default function GameScreen() {
         })}
       </div>
 
-      {/* NUEVO: EL INVENTARIO / LA MANO DE CARTAS */}
       {activePowerUps.length > 0 && (
         <div className="w-full max-w-md mt-10 p-4 bg-black/30 rounded-xl border border-gray-700">
           <p className="text-sm text-gray-400 font-bold mb-3 uppercase tracking-wider text-center">Cartas de Poder</p>
@@ -136,7 +134,7 @@ export default function GameScreen() {
               <button
                 key={pu.id}
                 onClick={() => activatePowerUp(pu)}
-                disabled={selectedOption !== null} // No se puede usar si ya respondiste
+                disabled={selectedOption !== null} 
                 className={`bg-linear-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-purple-400 transition-all active:scale-95 ${selectedOption !== null ? 'opacity-50 grayscale cursor-not-allowed' : 'animate-pulse'}`}
               >
                 ✨ {pu.title}

@@ -1,4 +1,3 @@
-// src/services/game.service.ts
 import { Question, AuditLogEntry, PowerUp } from '@/store/useGameStore';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -8,6 +7,7 @@ export interface SubmitGamePayload {
   categoryId: string;
   claimedScore: number;
   auditLog: AuditLogEntry[];
+  usedPowerUps?: string[]; // NUEVO: Para mandarle al Juez qué gastamos
 }
 
 export interface SubmitGameResponse {
@@ -32,7 +32,6 @@ export interface InventoryCard {
 }
 
 export const gameService = {
-  // AHORA DEVOLVEMOS UN OBJETO CON LAS PREGUNTAS Y LOS PODERES
   startRound: async (categoryId: string): Promise<{ questions: Question[], powerUps: PowerUp[] }> => {
     const response = await fetch(`${API_URL}/game/start?categoryId=${categoryId}`);
     
@@ -42,7 +41,6 @@ export const gameService = {
     
     const json = await response.json();
     
-    // Atajamos ambas cosas del JSON que manda NestJS
     return {
       questions: json.data,
       powerUps: json.powerUps || [],
@@ -73,6 +71,13 @@ export const gameService = {
     }
     
     const json = await response.json();
-    return json.data; // Devolvemos directamente el array de cartas
+    return json.data; 
   },
+
+  // NUEVO: Función especializada para el Lobby
+  getEquippedCards: async (mode: string, userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<InventoryCard[]> => {
+    // Pedimos el inventario completo y lo filtramos por el modo que necesitamos
+    const allCards = await gameService.getInventory(userId);
+    return allCards.filter(card => card.equippedModes.includes(mode));
+  }
 };
