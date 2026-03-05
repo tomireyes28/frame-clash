@@ -30,4 +30,17 @@ export class GameController {
     const result = await this.gameService.submitRound(submitData);
     return result;
   }
+
+  @Get('inventory')
+  async getInventory(
+    @Query('userId') userId: string = 'cmm8bj5pr0000n49toufqk6gd'
+  ) {
+    const inventory = await this.gameService.getUserInventory(userId);
+    
+    return {
+      status: 'success',
+      totalCards: inventory.length,
+      data: inventory
+    };
+  }
 }

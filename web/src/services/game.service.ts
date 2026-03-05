@@ -18,6 +18,19 @@ export interface SubmitGameResponse {
   message: string;
 }
 
+export interface InventoryCard {
+  id: string;
+  title: string;
+  year: number;
+  posterPath: string | null;
+  rarity: 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  powerUpAction: string | null;
+  powerUpValue: number | null;
+  quantity: number;
+  level: number;
+  equippedModes: string[];
+}
+
 export const gameService = {
   // AHORA DEVOLVEMOS UN OBJETO CON LAS PREGUNTAS Y LOS PODERES
   startRound: async (categoryId: string): Promise<{ questions: Question[], powerUps: PowerUp[] }> => {
@@ -50,5 +63,16 @@ export const gameService = {
     }
 
     return response.json();
-  }
+  },
+
+  getInventory: async (userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<InventoryCard[]> => {
+    const response = await fetch(`${API_URL}/game/inventory?userId=${userId}`);
+    
+    if (!response.ok) {
+      throw new Error('Error al cargar el inventario.');
+    }
+    
+    const json = await response.json();
+    return json.data; // Devolvemos directamente el array de cartas
+  },
 };

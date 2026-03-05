@@ -38,10 +38,14 @@ export class GameService {
       };
     });
 
+    // NUEVO 4. Buscamos el arsenal equipado para el modo ARCADE
     const equippedCards = await this.prisma.userCard.findMany({
       where: {
         userId: userId,
-        isEquipped: true,
+        // AHORA BUSCAMOS SI EL ARRAY CONTIENE EL MODO ACTUAL
+        equippedModes: {
+          has: 'ARCADE' 
+        }
       },
       include: {
         card: true, 
@@ -130,4 +134,36 @@ export class GameService {
         : 'Partida verificada y guardada con éxito.'
     };
   }
+
+  // BUSCAR EL INVENTARIO COMPLETO DEL USUARIO
+  async getUserInventory(userId: string = 'cmm8bj5pr0000n49toufqk6gd') {
+    // Buscamos todas las cartas que el usuario tiene en el bolsillo
+    const userCards = await this.prisma.userCard.findMany({
+      where: { userId: userId },
+      include: {
+        card: true, // Hacemos el JOIN para traer la info de la película
+      },
+      orderBy: {
+        createdAt: 'desc' // Las más nuevas primero
+      }
+    });
+
+    // Mapeamos los datos para mandar un JSON limpio al frontend
+    return userCards.map(uc => ({
+      id: uc.card.id, // El ID real de la carta
+      title: uc.card.title,
+      year: uc.card.year,
+      posterPath: uc.card.posterPath,
+      rarity: uc.card.rarity,
+      powerUpAction: uc.card.powerUpAction,
+      powerUpValue: uc.card.powerUpValue,
+      
+      // Info específica del jugador
+      quantity: uc.quantity,
+      level: uc.level,
+      equippedModes: uc.equippedModes, // Acá viaja nuestro array ['ARCADE']
+    }));
+  }
+
+ 
 }
