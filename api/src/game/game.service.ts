@@ -105,11 +105,7 @@ export class GameService {
       isAdjusted = true;
     }
 
-    // =========================================================
-    // NUEVO: AUDITORÍA DE NIVELES (El "Síndrome del Elixir")
-    // =========================================================
     if (data.usedPowerUps && data.usedPowerUps.length > 0) {
-      // 1. Contamos cuántas veces usó cada carta en esta ronda (ej: { "id_thanos": 2 })
       const usageCount: Record<string, number> = {};
       for (const powerUpId of data.usedPowerUps) {
         usageCount[powerUpId] = (usageCount[powerUpId] || 0) + 1;
@@ -117,7 +113,6 @@ export class GameService {
 
       const uniquePowerUpIds = Object.keys(usageCount);
 
-      // 2. Buscamos esas cartas en su inventario para el modo ARCADE
       const userCards = await this.prisma.userCard.findMany({
         where: {
           userId: data.userId,
@@ -127,21 +122,17 @@ export class GameService {
         }
       });
 
-      // 3. Verificamos que realmente tenga todas las que intentó usar
       if (userCards.length !== uniquePowerUpIds.length) {
         throw new BadRequestException('Intento de fraude: Cartas no equipadas o no poseídas.');
       }
 
-      // 4. Verificamos que no haya superado el límite de usos según su NIVEL
       for (const userCard of userCards) {
         const usesInRound = usageCount[userCard.cardId];
         if (usesInRound > userCard.level) {
           throw new BadRequestException(`Intento de fraude: Usó la carta ${userCard.cardId} ${usesInRound} veces, pero su nivel es ${userCard.level}.`);
         }
       }
-      // ¡Pasó la prueba! No descontamos la carta de la DB, la puede volver a usar en la próxima partida.
     }
-    // =========================================================
 
     const session = await this.prisma.gameSession.create({
       data: {
@@ -156,10 +147,27 @@ export class GameService {
       }
     });
 
+    // =========================================================
+    // 💰 ECONOMÍA: CÁLCULO DE RECOMPENSAS
+    // =========================================================
+    const coinsEarned = 10 + Math.floor(finalScoreToSave / 3000); // 10 base + 1 por c/3000 pts
+    const xpEarned = Math.floor(finalScoreToSave / 1000); // 1 XP por c/1000 pts
+
+    await this.prisma.user.update({
+      where: { id: data.userId },
+      data: {
+        coins: { increment: coinsEarned },
+        xp: { increment: xpEarned }
+      }
+    });
+    // =========================================================
+
     return {
       success: true,
       sessionId: session.id,
       finalScore: finalScoreToSave,
+      coinsEarned, // Enviamos el pago al front
+      xpEarned,    // Enviamos la experiencia al front
       isAdjusted,
       message: isAdjusted 
         ? 'Discrepancia detectada. Tu puntaje oficial fue ajustado por el servidor.'

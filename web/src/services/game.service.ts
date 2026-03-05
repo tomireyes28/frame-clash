@@ -7,13 +7,16 @@ export interface SubmitGamePayload {
   categoryId: string;
   claimedScore: number;
   auditLog: AuditLogEntry[];
-  usedPowerUps?: string[]; // NUEVO: Para mandarle al Juez qué gastamos
+  usedPowerUps?: string[]; 
 }
 
+// NUEVO: Agregamos coinsEarned y xpEarned a la respuesta del servidor
 export interface SubmitGameResponse {
   success: boolean;
   sessionId: string;
   finalScore: number;
+  coinsEarned: number; 
+  xpEarned: number;
   isAdjusted: boolean;
   message: string;
 }
@@ -74,9 +77,7 @@ export const gameService = {
     return json.data; 
   },
 
-  // NUEVO: Función especializada para el Lobby
   getEquippedCards: async (mode: string, userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<InventoryCard[]> => {
-    // Pedimos el inventario completo y lo filtramos por el modo que necesitamos
     const allCards = await gameService.getInventory(userId);
     return allCards.filter(card => card.equippedModes.includes(mode));
   }

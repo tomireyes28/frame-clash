@@ -20,13 +20,12 @@ export default function GameScreen() {
       const submitTimer = setTimeout(() => {
         setSubmitState('loading');
         
-        // MAGIA FINAL: Sumamos usedPowerUps al paquete que viaja al Juez
         const payload = {
           userId: 'cmm8bj5pr0000n49toufqk6gd', 
           categoryId: '28', 
           claimedScore: score,
           auditLog: useGameStore.getState().auditLog, 
-          usedPowerUps: useGameStore.getState().usedPowerUps, // <-- ¡El cable que faltaba!
+          usedPowerUps: useGameStore.getState().usedPowerUps, 
         };
 
         gameService.submitRound(payload)
@@ -70,8 +69,29 @@ export default function GameScreen() {
           )}
           
           {submitState === 'success' && finalResult && (
-            <div className="animate-in fade-in zoom-in duration-500">
-              <p className="text-green-500 font-bold text-2xl mb-2">¡Partida guardada oficialmente! ✅</p>
+            <div className="animate-in fade-in zoom-in duration-500 flex flex-col items-center gap-6 mt-4">
+              <p className="text-green-500 font-bold text-xl">¡Partida guardada oficialmente! ✅</p>
+              
+              {/* ========================================= */}
+              {/* 💰 NUEVO: BLOQUE VISUAL DE RECOMPENSAS */}
+              {/* ========================================= */}
+              <div className="w-full bg-black/40 rounded-xl p-4 flex justify-around border border-gray-700 shadow-inner">
+                {/* Monedas */}
+                <div className="flex flex-col items-center animate-bounce" style={{ animationDuration: '2s' }}>
+                  <span className="text-4xl drop-shadow-lg mb-1">🪙</span>
+                  <span className="text-yellow-400 font-black text-3xl">+{finalResult.coinsEarned}</span>
+                  <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Monedas</span>
+                </div>
+                
+                {/* Experiencia */}
+                <div className="flex flex-col items-center animate-bounce" style={{ animationDuration: '2.5s', animationDelay: '0.2s' }}>
+                  <span className="text-4xl drop-shadow-lg mb-1">⚡</span>
+                  <span className="text-blue-400 font-black text-3xl">+{finalResult.xpEarned}</span>
+                  <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Exp</span>
+                </div>
+              </div>
+              {/* ========================================= */}
+
             </div>
           )}
         </div>

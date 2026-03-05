@@ -77,15 +77,18 @@ model User {
   image         String?
   role          Role          @default(USER)
   
-  coins         Int           @default(0)
-  gems          Int           @default(0) 
-  level         Int           @default(1)
+  // ECONOMÍA Y PROGRESO
+  coins         Int           @default(0)   // Monedas para comprar sobres base
+  gems          Int           @default(0)   // Moneda premium (tienda exclusiva)
+  level         Int           @default(1)   // Nivel de la cuenta del jugador
+  xp            Int           @default(0)   // NUEVO: Experiencia acumulada para subir de nivel
   
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  // RELACIONES
   sessions      GameSession[]
-  inventory     UserCard[]    // NUEVO: El inventario del usuario
+  inventory     UserCard[]    
 }
 
 model Category {
