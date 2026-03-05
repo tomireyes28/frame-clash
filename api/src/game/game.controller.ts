@@ -10,27 +10,24 @@ export class GameController {
   @Get('start')
   async startRound(
     @Query('categoryId') categoryId: string,
-    // NestJS se encarga de darle un 10 por defecto y convertir el string a número:
     @Query('amount', new DefaultValuePipe(10), ParseIntPipe) amount: number, 
+    @Query('userId') userId: string = 'cmm8bj5pr0000n49toufqk6gd'
   ) {
-    // 1. Llamamos al Coliseo para que arme el paquete
-    const round = await this.gameService.generateRound(categoryId, amount);
+    // Al estar tipado en el servicio, TypeScript ya sabe exactamente qué es 'round'
+    const round = await this.gameService.generateRound(categoryId, amount, userId);
 
-    // 2. Devolvemos la respuesta
     return {
       status: 'success',
       message: 'Ronda generada con éxito. ¡A jugar!',
-      totalQuestions: round.length,
-      data: round,
+      totalQuestions: round.questions.length,
+      data: round.questions,
+      powerUps: round.powerUps, 
     };
   }
 
   @Post('submit')
   async submitRound(@Body() submitData: SubmitGameDto) {
-    // Fíjate qué limpio queda el controlador. 
-    // class-validator ya revisó que submitData sea perfecto antes de llegar a esta línea.
     const result = await this.gameService.submitRound(submitData);
-    
     return result;
   }
 }

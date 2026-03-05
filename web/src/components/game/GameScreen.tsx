@@ -7,24 +7,24 @@ import { useGameEngine } from '@/hooks/useGameEngine';
 import { gameService, SubmitGameResponse } from '@/services/game.service';
 
 export default function GameScreen() {
-  const { questions, currentIndex, status, score } = useGameStore();
+  // NUEVO: Traemos activePowerUps del store
+  const { questions, currentIndex, status, score, activePowerUps } = useGameStore();
   const currentQuestion = questions[currentIndex];
   
-  const { timeLeft, selectedOption, isCorrect, handleOptionClick } = useGameEngine(currentQuestion);
+  // NUEVO: Extraemos hiddenOptions y activatePowerUp del motor
+  const { timeLeft, selectedOption, isCorrect, hiddenOptions, handleOptionClick, activatePowerUp } = useGameEngine(currentQuestion);
 
   const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  // ¡Adiós al any!
   const [finalResult, setFinalResult] = useState<SubmitGameResponse | null>(null); 
 
   useEffect(() => {
     if (status === 'finished' && submitState === 'idle') {
-      // Usamos el mismo truco asíncrono para no enojar a React
       const submitTimer = setTimeout(() => {
         setSubmitState('loading');
         
         const payload = {
-          userId: 'cmm8bj5pr0000n49toufqk6gd',
-          categoryId: '28',
+          userId: 'cmm8bj5pr0000n49toufqk6gd', 
+          categoryId: '28', 
           claimedScore: score,
           auditLog: useGameStore.getState().auditLog, 
         };
@@ -64,17 +64,14 @@ export default function GameScreen() {
           )}
           
           {submitState === 'error' && (
-            <p className="text-red-500 font-bold text-xl">Error al guardar la partida. 🚨</p>
+            <div className="text-red-500">
+              <p className="font-bold text-xl">Error al guardar la partida. 🚨</p>
+            </div>
           )}
           
           {submitState === 'success' && finalResult && (
             <div className="animate-in fade-in zoom-in duration-500">
               <p className="text-green-500 font-bold text-2xl mb-2">¡Partida guardada oficialmente! ✅</p>
-              {finalResult.isAdjusted && (
-                <p className="text-orange-400 text-sm mt-2">
-                  (El Juez ajustó tu puntaje por desincronización)
-                </p>
-              )}
             </div>
           )}
         </div>
@@ -104,6 +101,11 @@ export default function GameScreen() {
 
       <div className="w-full max-w-md grid grid-cols-1 gap-4">
         {currentQuestion.options.map((option, idx) => {
+          // LA MAGIA DEL CHASQUIDO: Si está en hiddenOptions, hacemos el botón invisible
+          if (hiddenOptions.includes(option)) {
+            return <div key={idx} className="w-full py-4 px-6 invisible" />;
+          }
+
           let bgColor = 'bg-blue-800 hover:bg-blue-700';
           
           if (selectedOption === option) {
@@ -124,6 +126,25 @@ export default function GameScreen() {
           );
         })}
       </div>
+
+      {/* NUEVO: EL INVENTARIO / LA MANO DE CARTAS */}
+      {activePowerUps.length > 0 && (
+        <div className="w-full max-w-md mt-10 p-4 bg-black/30 rounded-xl border border-gray-700">
+          <p className="text-sm text-gray-400 font-bold mb-3 uppercase tracking-wider text-center">Cartas de Poder</p>
+          <div className="flex justify-center gap-3 flex-wrap">
+            {activePowerUps.map(pu => (
+              <button
+                key={pu.id}
+                onClick={() => activatePowerUp(pu)}
+                disabled={selectedOption !== null} // No se puede usar si ya respondiste
+                className={`bg-linear-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg border-2 border-purple-400 transition-all active:scale-95 ${selectedOption !== null ? 'opacity-50 grayscale cursor-not-allowed' : 'animate-pulse'}`}
+              >
+                ✨ {pu.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-
+// schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -6,8 +6,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
+
+// ==========================================
+// 1. ENUMS (El Sistema Lego)
+// ==========================================
 
 enum Role {
   USER
@@ -67,64 +70,83 @@ enum ActionType {
 // ==========================================
 
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?       @unique
   password      String?   
   image         String?
-  role          Role      @default(USER)
+  role          Role          @default(USER)
   
-  coins         Int       @default(0)
-  gems          Int       @default(0) 
-  level         Int       @default(1)
+  coins         Int           @default(0)
+  gems          Int           @default(0) 
+  level         Int           @default(1)
   
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   sessions      GameSession[]
+  inventory     UserCard[]    // NUEVO: El inventario del usuario
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  key         String   @unique 
-  tmdbId      Int?     
+  id               String   @id @default(cuid())
+  key              String   @unique 
+  tmdbId           Int?     
   
-  createdAt   DateTime @default(now())
-  cardsWithPowerUp Card[] @relation("PowerUpCategory")
+  createdAt        DateTime @default(now())
+  cardsWithPowerUp Card[]   @relation("PowerUpCategory")
 }
 
 model Card {
-  id            String   @id @default(cuid())
-  tmdbId        Int      @unique
-  title         String
-  year          Int
-  posterPath    String?
-  rarity        Rarity   @default(COMMON)
+  id               String   @id @default(cuid())
+  tmdbId           Int      @unique
+  title            String
+  year             Int
+  posterPath       String?
+  rarity           Rarity   @default(COMMON)
   
-  // === TU MATRIZ DE POWER-UPS (El Sistema Lego) ===
-  powerUpTrigger   TriggerType?    // ¿Cuándo se activa? (Ej: NEXT_QUESTION)
-  powerUpCondition ConditionType?  // ¿Qué debe pasar? (Ej: ON_WIN)
-  powerUpAction    ActionType?     // ¿Qué hace? (Ej: REMOVE_OPTION)
-  powerUpValue     Int?            // El número (Ej: 2 opciones, x3 bonus)
+  // === MATRIZ DE POWER-UPS (El Sistema Lego) ===
+  powerUpTrigger   TriggerType?    
+  powerUpCondition ConditionType?  
+  powerUpAction    ActionType?     
+  powerUpValue     Int?            
   
-  // Si el poder requiere una categoría (Ej: "Cambiar por otra de Terror"), la vinculamos acá:
   targetCategoryId String?
   targetCategory   Category? @relation("PowerUpCategory", fields: [targetCategoryId], references: [id])
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  owners           UserCard[] // NUEVO: Usuarios que poseen esta carta
 }
 
+// NUEVO: LA BILLETERA DE CARTAS (Inventario y Mazo)
+model UserCard {
+  id          String   @id @default(cuid())
+  userId      String
+  cardId      String
+  
+  quantity    Int      @default(1) // Por si le sale repetida en un sobre
+  level       Int      @default(1) // Por si a futuro se pueden mejorar
+  isEquipped  Boolean  @default(false) // TRUE si la carta está en el mazo de las 5 activas
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card        Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, cardId]) // Evita que un usuario tenga dos filas de la misma carta
+}
 
 model Question {
   id            String     @id @default(cuid())
-  text          String     // "La pregunta en sí"
-  correctAnswer String     // "La respuesta correcta"
-  options       String[]   // Array con las 3 opciones falsas + la correcta (mezcladas luego)
+  text          String     
+  correctAnswer String     
+  options       String[]   
   difficulty    Difficulty
-  cardId        String?    // Relación opcional a la carta/película
-  categories    String[]   // NUEVO: Ej ["28", "decada-2000"]
-  
+  cardId        String?    
+  categories    String[]   
 }
 
 // ==========================================

@@ -1,15 +1,20 @@
+// src/hooks/useGameEngine.ts
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useGameStore, Question } from '../store/useGameStore';
+import { useGameStore, Question, PowerUp } from '../store/useGameStore';
 import { validateAnswerHash } from '../utils/gameCrypto';
 
 export const useGameEngine = (currentQuestion: Question | undefined) => {
-  const { status, answerQuestion, advanceQuestion } = useGameStore();
+  const { status, answerQuestion, advanceQuestion, consumePowerUp } = useGameStore();
   
   const [timeLeft, setTimeLeft] = useState(10000);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   
+  const [hiddenOptions, setHiddenOptions] = useState<string[]>([]);
+  
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ELIMINAMOS EL useEffect que causaba el error de cascada.
 
   const processAnswer = useCallback((option: string, timeSpent: number, isTimeout: boolean = false) => {
     if (!currentQuestion) return;
@@ -27,12 +32,12 @@ export const useGameEngine = (currentQuestion: Question | undefined) => {
       timeSpentMs: timeSpent,
     }, pointsEarned);
 
-    // Pausa dramática de 1.5s antes de la próxima pregunta
     setTimeout(() => {
       setSelectedOption(null);
       setIsCorrect(null);
       setTimeLeft(10000);
-      advanceQuestion(); // <--- ACÁ AVANZAMOS DE PANTALLA
+      setHiddenOptions([]); // <-- AHORA LO LIMPIAMOS ACÁ, junto con el resto del estado
+      advanceQuestion();
     }, 1500);
   }, [currentQuestion, answerQuestion, advanceQuestion]);
 
@@ -40,7 +45,6 @@ export const useGameEngine = (currentQuestion: Question | undefined) => {
     processAnswer('TIMEOUT', 10000, true);
   }, [processAnswer]);
 
-  // 1. El Motor del Reloj (Solo resta tiempo)
   useEffect(() => {
     if (status !== 'playing' || selectedOption !== null || timeLeft <= 0) return;
 
@@ -58,22 +62,34 @@ export const useGameEngine = (currentQuestion: Question | undefined) => {
       const timeoutId = setTimeout(() => {
         handleTimeout();
       }, 0);
-      
       return () => clearTimeout(timeoutId);
     }
   }, [timeLeft, selectedOption, currentQuestion, handleTimeout]);
 
-  
   const handleOptionClick = (option: string) => {
     if (selectedOption !== null) return;
     if (timerRef.current) clearInterval(timerRef.current);
     processAnswer(option, 10000 - timeLeft);
   };
 
-  return {
-    timeLeft,
-    selectedOption,
-    isCorrect,
-    handleOptionClick
-  };
+  const activatePowerUp = useCallback((powerUp: PowerUp) => {
+    if (!currentQuestion || selectedOption !== null) return;
+
+    if (powerUp.action === 'REMOVE_OPTION') {
+      const correctOpt = currentQuestion.options.find(opt => 
+        validateAnswerHash(opt, currentQuestion.id, currentQuestion.answerHash)
+      );
+
+      const incorrectOpts = currentQuestion.options.filter(opt => opt !== correctOpt);
+
+      const toHide = incorrectOpts
+        .sort(() => 0.5 - Math.random())
+        .slice(0, powerUp.value);
+
+      setHiddenOptions(toHide);
+      consumePowerUp(powerUp.id);
+    }
+  }, [currentQuestion, selectedOption, consumePowerUp]);
+
+  return { timeLeft, selectedOption, isCorrect, hiddenOptions, handleOptionClick, activatePowerUp };
 };

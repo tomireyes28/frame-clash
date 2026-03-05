@@ -13,11 +13,11 @@ export default function PlayPage() {
   const handleStartGame = async () => {
     setIsLoading(true);
     try {
-      // 1. Llamamos al servicio (Categoría 28 = Acción)
-      const questions = await gameService.startRound('28');
+      // 1. Llamamos al servicio (ahora devuelve un objeto con dos cosas)
+      const { questions, powerUps } = await gameService.startRound('28');
       
-      // 2. Le pasamos las preguntas a Zustand
-      startGame(questions);
+      // 2. Le pasamos ambas cosas a Zustand
+      startGame(questions, powerUps);
     } catch (error) {
       console.error("Error al iniciar partida:", error);
       alert("Hubo un error al iniciar el juego.");

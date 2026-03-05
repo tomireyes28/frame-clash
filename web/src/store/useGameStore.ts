@@ -1,6 +1,6 @@
+// src/store/useGameStore.ts
 import { create } from 'zustand';
 
-// 1. Definimos las interfaces estrictas
 export interface Question {
   id: string;
   text: string;
@@ -15,47 +15,52 @@ export interface AuditLogEntry {
   timeSpentMs: number;
 }
 
+export interface PowerUp {
+  id: string;
+  title: string;
+  action: string;
+  value: number;
+}
+
 type GameStatus = 'idle' | 'playing' | 'finished';
 
 interface GameState {
-  // === ESTADO (Datos) ===
   status: GameStatus;
   questions: Question[];
   currentIndex: number;
   score: number;
   auditLog: AuditLogEntry[];
+  activePowerUps: PowerUp[];
 
-  // === ACCIONES (Funciones) ===
-  startGame: (questions: Question[]) => void;
+  startGame: (questions: Question[], powerUps: PowerUp[]) => void;
   answerQuestion: (logEntry: AuditLogEntry, pointsEarned: number) => void;
   advanceQuestion: () => void;
+  consumePowerUp: (id: string) => void; // NUEVO: Para "quemar" la carta usada
   resetGame: () => void;
 }
 
-// 2. Creamos el Store
 export const useGameStore = create<GameState>((set) => ({
   status: 'idle',
   questions: [],
   currentIndex: 0,
   score: 0,
   auditLog: [],
+  activePowerUps: [],
 
-  // Arranca la partida
-  startGame: (questions) => set({
+  startGame: (questions, powerUps) => set({
     questions: questions,
+    activePowerUps: powerUps,
     status: 'playing',
     currentIndex: 0,
     score: 0,
     auditLog: [],
   }),
 
-  // SOLO guarda el registro y los puntos (No avanza de pantalla)
   answerQuestion: (logEntry, pointsEarned) => set((state) => ({
     auditLog: [...state.auditLog, logEntry],
     score: state.score + pointsEarned,
   })),
 
-  // SOLO se encarga de cambiar de pregunta o terminar la partida
   advanceQuestion: () => set((state) => {
     const isLastQuestion = state.currentIndex === state.questions.length - 1;
     return {
@@ -64,12 +69,17 @@ export const useGameStore = create<GameState>((set) => ({
     };
   }),
 
-  // Vuelve al menú principal
+  // NUEVO: Filtramos la carta que acabamos de usar para sacarla de la "mano"
+  consumePowerUp: (id) => set((state) => ({
+    activePowerUps: state.activePowerUps.filter(p => p.id !== id)
+  })),
+
   resetGame: () => set({
     status: 'idle',
     questions: [],
     currentIndex: 0,
     score: 0,
     auditLog: [],
+    activePowerUps: [],
   }),
 }));
