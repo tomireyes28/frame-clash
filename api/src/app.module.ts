@@ -8,9 +8,11 @@ import { TmdbModule } from './tmdb/tmdb.module';
 import { CardsModule } from './cards/cards.module';
 import { QuestionsModule } from './questions/questions.module';
 import { GameModule } from './game/game.module';
+import { ShopModule } from './shop/shop.module';
+import { PackModule } from './pack/pack.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule],
+  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule],
   controllers: [AppController],
   providers: [AppService],
 })
