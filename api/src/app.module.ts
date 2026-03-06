@@ -10,9 +10,10 @@ import { QuestionsModule } from './questions/questions.module';
 import { GameModule } from './game/game.module';
 import { ShopModule } from './shop/shop.module';
 import { PackModule } from './pack/pack.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule],
+  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule, InventoryModule],
   controllers: [AppController],
   providers: [AppService],
 })

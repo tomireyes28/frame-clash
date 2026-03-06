@@ -2,120 +2,160 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { gameService, InventoryCard } from '@/services/game.service';
+import { inventoryService, InventoryCard } from '@/services/inventory.service';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// URL base de TMDB para armar las imágenes de los pósters
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 export default function InventoryPage() {
   const [cards, setCards] = useState<InventoryCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [upgradeError, setUpgradeError] = useState<string | null>(null);
+  const [upgradingId, setUpgradingId] = useState<string | null>(null);
+
+  const loadInventory = async () => {
+    try {
+      const data = await inventoryService.getInventory();
+      setCards(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Cargamos la colección apenas entra a la página
-    gameService.getInventory()
-      .then((data) => {
-        setCards(data);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setIsLoading(false));
+    loadInventory();
   }, []);
 
-  // Diccionario de colores según la rareza de la carta
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'LEGENDARY': return 'bg-yellow-500 text-black shadow-yellow-500/50';
-      case 'EPIC': return 'bg-purple-600 text-white shadow-purple-600/50';
-      case 'RARE': return 'bg-blue-500 text-white shadow-blue-500/50';
-      case 'UNCOMMON': return 'bg-green-500 text-white shadow-green-500/50';
-      default: return 'bg-gray-400 text-black shadow-gray-400/50'; // COMMON
+  const handleUpgrade = async (cardId: string) => {
+    setUpgradingId(cardId);
+    setUpgradeError(null);
+    try {
+      const result = await inventoryService.upgradeCard(cardId);
+      // Animación súper simple: recargamos el inventario para ver los nuevos datos
+      await loadInventory();
+      alert(`🎉 ${result.message}\nTe quedan ${result.newBalance} monedas.`);
+    } catch (err) {
+      if (err instanceof Error) {
+        setUpgradeError(err.message);
+        // Borramos el error a los 3 segundos
+        setTimeout(() => setUpgradeError(null), 3000);
+      }
+    } finally {
+      setUpgradingId(null);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0f3a61] flex items-center justify-center">
-        <p className="text-[#E50914] text-2xl font-bold animate-pulse">Cargando colección...</p>
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#E50914] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0f3a61] p-6 text-white font-sans pb-20">
+    <div className="min-h-screen bg-[#09090b] text-white p-4 md:p-8">
+      
       {/* HEADER */}
-      <div className="max-w-7xl mx-auto mb-10 text-center">
-        <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-widest drop-shadow-lg" style={{ fontFamily: 'var(--font-oswald), sans-serif' }}>
-          Mi <span className="text-[#E50914]">Colección</span>
-        </h1>
-        <p className="text-gray-300 mt-2 font-bold">Cartas obtenidas: {cards.length}</p>
+      <div className="max-w-6xl mx-auto mb-10 border-b border-gray-800 pb-6 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h1 className="text-4xl font-black uppercase tracking-widest text-white drop-shadow-md">
+            Mi <span className="text-[#E50914]">Colección</span>
+          </h1>
+          <p className="text-gray-400 font-bold mt-2">
+            {cards.length} Cartas Únicas Descubiertas
+          </p>
+        </div>
       </div>
 
+      {/* ERROR FLOTANTE */}
+      <AnimatePresence>
+        {upgradeError && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white font-bold px-6 py-3 rounded-full shadow-2xl z-50 border-2 border-red-400"
+          >
+            🚨 {upgradeError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* GRILLA DE CARTAS */}
-      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {cards.map((card) => {
-          const isEquippedInArcade = card.equippedModes.includes('ARCADE');
+          // Matemática de Fusión
+          const currentLevel = card.level;
+          const isMaxLevel = currentLevel >= 5;
+          const requiredDupes = currentLevel * 2;
+          const currentDupes = card.quantity - 1; // Restamos la carta base
+          const progressPercent = Math.min((currentDupes / requiredDupes) * 100, 100);
+          const canUpgrade = currentDupes >= requiredDupes && !isMaxLevel;
+          const upgradeCost = currentLevel * 50;
 
           return (
-            <div 
-              key={card.id} 
-              className={`bg-[#09090b] rounded-xl overflow-hidden border-2 flex flex-col transition-all hover:scale-105 hover:z-10 shadow-xl ${isEquippedInArcade ? 'border-[#E50914]' : 'border-gray-800'}`}
-            >
-             {/* PÓSTER OPTIMIZADO */}
-                <div className="relative aspect-2/3 w-full bg-gray-900">
-                  {card.posterPath ? (
-                    <Image 
-                      src={`${TMDB_IMAGE_BASE}${card.posterPath}`} 
-                      alt={card.title}
-                      fill // Se adapta al contenedor relative que tiene aspect-[2/3]
-                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-                      className="object-cover opacity-90"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-600">Sin Imagen</div>
-                  )}
+            <div key={card.id} className="flex flex-col items-center bg-black/40 p-3 rounded-2xl border border-gray-800 hover:border-gray-600 transition-colors">
+              
+              {/* LA CARTA */}
+              <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden border-2 border-[#E50914] shadow-lg mb-4">
+                {card.posterPath ? (
+                  <Image src={`${TMDB_IMAGE_BASE}${card.posterPath}`} alt={card.title} fill sizes="(max-width: 768px) 50vw, 20vw" className="object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gray-900 flex items-center justify-center text-center p-2 font-bold text-sm">{card.title}</div>
+                )}
                 
-                {/* BADGE DE RAREZA */}
-                <div className={`absolute top-2 left-2 px-2 py-1 text-xs font-black uppercase rounded shadow-lg ${getRarityColor(card.rarity)}`}>
-                  {card.rarity}
+                {/* Badge de Nivel */}
+                <div className="absolute top-2 right-2 bg-black/90 px-2 py-1 text-xs font-black rounded-full border border-yellow-500 text-yellow-500 shadow-md">
+                  {isMaxLevel ? 'MAX' : `Nvl ${currentLevel}`}
                 </div>
 
-                {/* CANTIDAD (DUPLICADAS) */}
-                <div className="absolute top-2 right-2 bg-black/80 px-2 py-1 text-xs font-bold rounded-full border border-gray-600">
-                  x{card.quantity}
+                {/* Acción del Poder */}
+                <div className="absolute bottom-0 w-full bg-gradient-to-t from-black via-black/90 to-transparent pt-6 pb-2 text-center">
+                  <span className="text-[10px] md:text-xs font-black text-indigo-400 tracking-widest uppercase">
+                    {card.powerUpAction} {card.powerUpValue && `(${card.powerUpValue})`}
+                  </span>
                 </div>
               </div>
 
-              {/* INFO DE LA CARTA */}
-              <div className="p-4 flex flex-col grow">
-                <h3 className="font-bold text-sm md:text-base leading-tight mb-1 line-clamp-2">{card.title} ({card.year})</h3>
-                
-                {/* PODER */}
-                <div className="mt-2 mb-4 text-xs text-gray-400 bg-gray-900 p-2 rounded border border-gray-800">
-                  {card.powerUpAction ? (
-                    <span className="text-indigo-400 font-bold flex items-center gap-1">
-                      ✨ {card.powerUpAction} {card.powerUpValue && `(${card.powerUpValue})`}
-                    </span>
-                  ) : (
-                    <span>Sin habilidad activa</span>
-                  )}
-                </div>
-
-                {/* BOTÓN INVENTARIO (Meta-juego) */}
-                <button 
-                  className={`mt-auto w-full py-2 font-bold uppercase tracking-wider text-sm rounded transition-colors border ${
-                    card.quantity > 1 
-                      ? 'bg-linear-to-r from-yellow-600 to-yellow-500 text-black hover:from-yellow-500 hover:to-yellow-400 border-yellow-400' 
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border-gray-700'
-                  }`}
-                >
-                  {card.quantity > 1 ? '🌟 Mejorar Nivel' : '🔍 Inspeccionar'}
-                </button>
+              {/* BARRA DE PROGRESO / BOTÓN DE MEJORA */}
+              <div className="w-full">
+                {isMaxLevel ? (
+                  <div className="w-full py-2 bg-yellow-600/20 text-yellow-500 text-center text-xs font-black rounded uppercase tracking-widest border border-yellow-600/50">
+                    Nivel Máximo
+                  </div>
+                ) : canUpgrade ? (
+                  <button
+                    onClick={() => handleUpgrade(card.id)}
+                    disabled={upgradingId === card.id}
+                    className="w-full py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-black rounded uppercase tracking-widest shadow-[0_0_15px_rgba(22,163,74,0.5)] transition-all flex justify-center items-center gap-1"
+                  >
+                    {upgradingId === card.id ? 'Mejorando...' : `Mejorar (${upgradeCost}🪙)`}
+                  </button>
+                ) : (
+                  <>
+                    <div className="flex justify-between text-[10px] font-bold text-gray-400 mb-1 px-1">
+                      <span>Repetidas</span>
+                      <span>{currentDupes} / {requiredDupes}</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 transition-all duration-500"
+                        style={{ width: `${progressPercent}%` }}
+                      ></div>
+                    </div>
+                  </>
+                )}
               </div>
+
             </div>
           );
         })}
       </div>
+
     </div>
   );
 }
