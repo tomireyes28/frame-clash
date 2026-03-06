@@ -11,9 +11,10 @@ import { GameModule } from './game/game.module';
 import { ShopModule } from './shop/shop.module';
 import { PackModule } from './pack/pack.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule, InventoryModule],
+  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule, InventoryModule, ProfileModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -101,7 +101,7 @@ export default function InventoryPage() {
             <div key={card.id} className="flex flex-col items-center bg-black/40 p-3 rounded-2xl border border-gray-800 hover:border-gray-600 transition-colors">
               
               {/* LA CARTA */}
-              <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden border-2 border-[#E50914] shadow-lg mb-4">
+              <div className="relative w-full aspect-2/3 rounded-xl overflow-hidden border-2 border-[#E50914] shadow-lg mb-4">
                 {card.posterPath ? (
                   <Image src={`${TMDB_IMAGE_BASE}${card.posterPath}`} alt={card.title} fill sizes="(max-width: 768px) 50vw, 20vw" className="object-cover" />
                 ) : (
@@ -114,7 +114,7 @@ export default function InventoryPage() {
                 </div>
 
                 {/* Acción del Poder */}
-                <div className="absolute bottom-0 w-full bg-gradient-to-t from-black via-black/90 to-transparent pt-6 pb-2 text-center">
+                <div className="absolute bottom-0 w-full bg-linear-to-t from-black via-black/90 to-transparent pt-6 pb-2 text-center">
                   <span className="text-[10px] md:text-xs font-black text-indigo-400 tracking-widest uppercase">
                     {card.powerUpAction} {card.powerUpValue && `(${card.powerUpValue})`}
                   </span>
