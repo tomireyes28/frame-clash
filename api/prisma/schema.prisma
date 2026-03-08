@@ -65,6 +65,19 @@ enum ActionType {
   REMOVE_QUESTION
 }
 
+enum MissionFrequency {
+  DAILY
+  WEEKLY
+  SEASONAL
+}
+
+enum MissionType {
+  PLAY_GAMES      // "Juega X partidas"
+  EARN_COINS      // "Gana X monedas"
+  SCORE_POINTS    // "Consigue X puntos en total"
+  // Más adelante podés agregar cosas como PLAY_ACTION_CATEGORY
+}
+
 // ==========================================
 // 2. MODELOS PRINCIPALES
 // ==========================================
@@ -89,6 +102,8 @@ model User {
   // RELACIONES
   sessions      GameSession[]
   inventory     UserCard[]    
+
+  missions    UserMission[] 
 }
 
 model Category {
@@ -167,4 +182,27 @@ model GameSession {
   auditLog    Json?    
 
   createdAt   DateTime @default(now())
+}
+
+
+model UserMission {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  frequency    MissionFrequency // Para saber si es diaria, semanal, etc.
+  type         MissionType      // Lo que tiene que hacer el jugador
+  title        String           // Ej: "Juega 3 partidas en el Coliseo"
+  
+  targetValue  Int              // Ej: 3
+  currentValue Int              @default(0)
+  isCompleted  Boolean          @default(false)
+  rewardCoins  Int              // El premio
+  
+  expiresAt    DateTime         // LA CLAVE: Cuándo desaparece esta misión
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([userId])
 }

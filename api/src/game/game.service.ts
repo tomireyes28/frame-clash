@@ -3,10 +3,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { hashAnswer } from './utils/hash.util';
 import { SubmitGameDto } from './dto/submit-game.dto';
 import { GameRoundResponse, SafeQuestionPayload, PowerUpPayload } from './interfaces/game.interface';
+import { MissionService } from '../mission/mission.service';
 
 @Injectable()
 export class GameService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+    private readonly missionService: MissionService
+  ) {}
 
   async generateRound(categoryId: string, amount: number = 10, userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<GameRoundResponse> {
     if (!categoryId) {
@@ -160,7 +163,16 @@ export class GameService {
         xp: { increment: xpEarned }
       }
     });
+
     // =========================================================
+    // 🎯 MISIONES: EL INSPECTOR EN ACCIÓN
+    // =========================================================
+    // Le avisamos al sistema de misiones lo que acaba de lograr el jugador
+    await this.missionService.advanceProgress(data.userId, {
+      gamesPlayed: 1, 
+      coinsEarned: coinsEarned, 
+      scoreEarned: finalScoreToSave    
+    });
 
     return {
       success: true,
