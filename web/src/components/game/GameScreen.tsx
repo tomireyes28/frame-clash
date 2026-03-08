@@ -20,9 +20,9 @@ export default function GameScreen() {
       const submitTimer = setTimeout(() => {
         setSubmitState('loading');
         
+        // 🧹 Limpiamos el payload: Chau userId hardcodeado
         const payload = {
-          userId: 'cmm8bj5pr0000n49toufqk6gd', 
-          categoryId: '28', 
+          categoryId: '28', // (Nota: Si esto también estaba hardcodeado, a futuro lo podés leer del store)
           claimedScore: score,
           auditLog: useGameStore.getState().auditLog, 
           usedPowerUps: useGameStore.getState().usedPowerUps, 

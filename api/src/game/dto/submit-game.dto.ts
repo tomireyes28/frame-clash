@@ -16,9 +16,8 @@ export class AnswerLogDto {
   timeSpentMs!: number;
 }
 
-// 2. Validamos el paquete completo que llega del frontend
 export class SubmitGameDto {
-  @IsString()
+  @IsOptional()
   @IsNotEmpty()
   userId!: string;
 
@@ -35,7 +34,6 @@ export class SubmitGameDto {
   @Type(() => AnswerLogDto)
   auditLog!: AnswerLogDto[];
 
-  // NUEVO: Array con los IDs de los poderes que usó en la partida
   @IsOptional()
   @IsArray()
   @IsString({ each: true })

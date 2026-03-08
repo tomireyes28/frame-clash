@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { RequestWithJwtUser } from '../auth/interfaces/request.interface';
 
 @Controller('inventory')
+@UseGuards(JwtAuthGuard) // 🛡️ Seguridad total
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   // Traer todas las cartas del jugador
   @Get()
-  async getInventory(@Query('userId') userId: string) {
-    if (!userId) throw new Error('Falta el userId');
+  async getInventory(@Req() req: RequestWithJwtUser) {
+    const userId = req.user.id; // 👈 Sacamos el ID del Token
     const cards = await this.inventoryService.getUserInventory(userId);
     return { success: true, data: cards };
   }
@@ -16,10 +19,12 @@ export class InventoryController {
   // Mejorar una carta
   @Post('upgrade')
   async upgradeCard(
-    @Body('userId') userId: string,
-    @Body('cardId') cardId: string
+    @Req() req: RequestWithJwtUser, // 👈 Atrapamos al usuario
+    @Body('cardId') cardId: string  // 🧹 Solo pedimos la carta, el usuario ya lo sabemos
   ) {
-    if (!userId || !cardId) throw new Error('Faltan datos para mejorar la carta');
+    const userId = req.user.id;
+    if (!cardId) throw new BadRequestException('Falta el cardId para mejorar la carta');
+    
     return this.inventoryService.upgradeCard(userId, cardId);
   }
 }

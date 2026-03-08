@@ -1,4 +1,5 @@
-// src/services/profile.service.ts
+import Cookies from 'js-cookie';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface UserProfileData {
@@ -31,9 +32,22 @@ export interface ProfileResponse {
   profile: UserProfileData;
 }
 
+// 🛠️ Helper de seguridad
+const getAuthHeaders = () => {
+  const token = Cookies.get('frameclash_token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
+
 export const profileService = {
-  getProfile: async (userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<UserProfileData> => {
-    const response = await fetch(`${API_URL}/profile?userId=${userId}`);
+  // 🧹 Chau parámetro userId
+  getProfile: async (): Promise<UserProfileData> => {
+    // 🧹 Chau ?userId= de la URL
+    const response = await fetch(`${API_URL}/profile`, {
+      headers: getAuthHeaders(), // 👈 Inyectamos el Token
+    });
     
     if (!response.ok) {
       throw new Error('Error al cargar el perfil del jugador.');

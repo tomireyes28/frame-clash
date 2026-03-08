@@ -1,17 +1,17 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, UseGuards, Req } from '@nestjs/common';
 import { ShopService } from './shop.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { RequestWithJwtUser } from '../auth/interfaces/request.interface';
 
 @Controller('shop')
+@UseGuards(JwtAuthGuard) // 🛡️ Seguridad total
 export class ShopController {
   constructor(private readonly shopService: ShopService) {}
 
   @Post('buy-pack')
-  async buyStandardPack(@Body('userId') userId: string) {
-    // Nota: Por ahora pasamos el userId por el Body para hacerlo fácil. 
-    // Más adelante, cuando NextAuth esté 100% acoplado, sacaremos el ID directo del Token de seguridad.
-    if (!userId) {
-      throw new Error('Falta el userId');
-    }
+  async buyStandardPack(@Req() req: RequestWithJwtUser) {
+    // ¡Promesa cumplida! Sacamos el ID directo del Token de seguridad.
+    const userId = req.user.id; 
     
     return this.shopService.buyStandardPack(userId);
   }

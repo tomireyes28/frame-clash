@@ -1,16 +1,16 @@
 import { Question, AuditLogEntry, PowerUp } from '@/store/useGameStore';
+import Cookies from 'js-cookie'; // 👈 1. Importamos las cookies
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface SubmitGamePayload {
-  userId: string;
+  // 🧹 Borramos el userId de acá, ya no viaja en el body
   categoryId: string;
   claimedScore: number;
   auditLog: AuditLogEntry[];
   usedPowerUps?: string[]; 
 }
 
-// NUEVO: Agregamos coinsEarned y xpEarned a la respuesta del servidor
 export interface SubmitGameResponse {
   success: boolean;
   sessionId: string;
@@ -34,9 +34,20 @@ export interface InventoryCard {
   equippedModes: string[];
 }
 
+// 🛠️ Helper function para no repetir código: Obtiene los headers de autorización
+const getAuthHeaders = () => {
+  const token = Cookies.get('frameclash_token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}` // 👈 2. La llave maestra para el Backend
+  };
+};
+
 export const gameService = {
   startRound: async (categoryId: string): Promise<{ questions: Question[], powerUps: PowerUp[] }> => {
-    const response = await fetch(`${API_URL}/game/start?categoryId=${categoryId}`);
+    const response = await fetch(`${API_URL}/game/start?categoryId=${categoryId}`, {
+      headers: getAuthHeaders(), // 👈 3. Inyectamos los headers
+    });
     
     if (!response.ok) {
       throw new Error('Error al conectar con el Coliseo (Backend).');
@@ -53,9 +64,7 @@ export const gameService = {
   submitRound: async (payload: SubmitGamePayload): Promise<SubmitGameResponse> => {
     const response = await fetch(`${API_URL}/game/submit`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(), // 👈 3. Inyectamos los headers
       body: JSON.stringify(payload),
     });
 
@@ -66,8 +75,12 @@ export const gameService = {
     return response.json();
   },
 
-  getInventory: async (userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<InventoryCard[]> => {
-    const response = await fetch(`${API_URL}/game/inventory?userId=${userId}`);
+  // 🧹 Borramos el parámetro userId hardcodeado
+  getInventory: async (): Promise<InventoryCard[]> => {
+    // 🧹 Borramos el ?userId= de la URL
+    const response = await fetch(`${API_URL}/game/inventory`, {
+      headers: getAuthHeaders(), // 👈 3. Inyectamos los headers
+    });
     
     if (!response.ok) {
       throw new Error('Error al cargar el inventario.');
@@ -77,8 +90,10 @@ export const gameService = {
     return json.data; 
   },
 
-  getEquippedCards: async (mode: string, userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<InventoryCard[]> => {
-    const allCards = await gameService.getInventory(userId);
+  // 🧹 Borramos el parámetro userId hardcodeado
+  getEquippedCards: async (mode: string): Promise<InventoryCard[]> => {
+    // 🧹 Llamamos a getInventory sin parámetros
+    const allCards = await gameService.getInventory();
     return allCards.filter(card => card.equippedModes.includes(mode));
   }
 };

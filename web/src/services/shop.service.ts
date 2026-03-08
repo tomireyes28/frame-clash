@@ -1,4 +1,5 @@
-// src/services/shop.service.ts
+import Cookies from 'js-cookie'; // 👈 1. Importamos la bóveda de credenciales
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface PackCard {
@@ -17,14 +18,22 @@ export interface BuyPackResponse {
   cards: PackCard[];
 }
 
+// 🛠️ Nuestro helper de seguridad
+const getAuthHeaders = () => {
+  const token = Cookies.get('frameclash_token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}` // 👈 2. El pase VIP
+  };
+};
+
 export const shopService = {
-  buyStandardPack: async (userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<BuyPackResponse> => {
+  // 🧹 3. Chau userId de los parámetros
+  buyStandardPack: async (): Promise<BuyPackResponse> => {
     const response = await fetch(`${API_URL}/shop/buy-pack`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
+      headers: getAuthHeaders(), // 👈 4. Adjuntamos el token
+      // 🧹 5. Borramos la propiedad `body` por completo. El backend ya no la necesita.
     });
 
     if (!response.ok) {

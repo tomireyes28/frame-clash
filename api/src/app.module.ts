@@ -13,9 +13,10 @@ import { PackModule } from './pack/pack.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ProfileModule } from './profile/profile.module';
 import { MissionModule } from './mission/mission.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule, InventoryModule, ProfileModule, MissionModule],
+  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule, InventoryModule, ProfileModule, MissionModule, LeaderboardModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,4 +1,5 @@
-// src/services/mission.service.ts
+import Cookies from 'js-cookie';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface Mission {
@@ -17,12 +18,22 @@ export interface MissionsResponse {
   data: Mission[];
 }
 
+// 🛠️ Helper de seguridad
+const getAuthHeaders = () => {
+  const token = Cookies.get('frameclash_token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
+
 export const missionService = {
-  // Por ahora hardcodeamos tu ID de prueba, luego lo sacaremos de la sesión de NextAuth
-  getDailyMissions: async (userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<Mission[]> => {
-    const response = await fetch(`${API_URL}/mission?userId=${userId}`, {
-      // Usamos 'no-store' para que Next.js no cachee esto y siempre traiga el progreso real
-      cache: 'no-store' 
+  // 🧹 Borramos el comentario viejo y el parámetro userId
+  getDailyMissions: async (): Promise<Mission[]> => {
+    // 🧹 Chau ?userId= de la URL
+    const response = await fetch(`${API_URL}/mission`, {
+      headers: getAuthHeaders(), // 👈 Inyectamos el Token
+      cache: 'no-store' // Mantenemos tu configuración para evitar el caché de Next.js
     });
     
     if (!response.ok) {

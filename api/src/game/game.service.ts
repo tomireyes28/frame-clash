@@ -4,14 +4,18 @@ import { hashAnswer } from './utils/hash.util';
 import { SubmitGameDto } from './dto/submit-game.dto';
 import { GameRoundResponse, SafeQuestionPayload, PowerUpPayload } from './interfaces/game.interface';
 import { MissionService } from '../mission/mission.service';
+import { LeaderboardService } from '../leaderboard/leaderboard.service'; 
 
 @Injectable()
 export class GameService {
-  constructor(private readonly prisma: PrismaService,
-    private readonly missionService: MissionService
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly missionService: MissionService,
+    private readonly leaderboardService: LeaderboardService 
   ) {}
 
-  async generateRound(categoryId: string, amount: number = 10, userId: string = 'cmm8bj5pr0000n49toufqk6gd'): Promise<GameRoundResponse> {
+  // CORRECCIÓN 1: Sacamos el '= 10' de amount para que TypeScript no tire error de orden
+  async generateRound(categoryId: string, amount: number, userId: string): Promise<GameRoundResponse> { 
     if (!categoryId) {
       throw new BadRequestException('El parámetro categoryId es obligatorio para iniciar una partida.');
     }
@@ -40,7 +44,7 @@ export class GameService {
 
     const equippedCards = await this.prisma.userCard.findMany({
       where: {
-        userId: userId,
+        userId: userId, // 👈 Usa el ID real
         equippedModes: {
           has: 'ARCADE' 
         }
@@ -118,7 +122,7 @@ export class GameService {
 
       const userCards = await this.prisma.userCard.findMany({
         where: {
-          userId: data.userId,
+          userId: data.userId, // 👈 Usa el ID real
           cardId: { in: uniquePowerUpIds },
           quantity: { gt: 0 },
           equippedModes: { has: 'ARCADE' }
@@ -139,7 +143,7 @@ export class GameService {
 
     const session = await this.prisma.gameSession.create({
       data: {
-        userId: data.userId, 
+        userId: data.userId, // 👈 Usa el ID real
         mode: 'ARCADE', 
         score: finalScoreToSave,
         auditLog: data.auditLog.map(log => ({
@@ -150,36 +154,31 @@ export class GameService {
       }
     });
 
-    // =========================================================
-    // 💰 ECONOMÍA: CÁLCULO DE RECOMPENSAS
-    // =========================================================
-    const coinsEarned = 10 + Math.floor(finalScoreToSave / 3000); // 10 base + 1 por c/3000 pts
-    const xpEarned = Math.floor(finalScoreToSave / 1000); // 1 XP por c/1000 pts
+    const coinsEarned = 10 + Math.floor(finalScoreToSave / 3000); 
+    const xpEarned = Math.floor(finalScoreToSave / 1000); 
 
     await this.prisma.user.update({
-      where: { id: data.userId },
+      where: { id: data.userId }, // 👈 Usa el ID real
       data: {
         coins: { increment: coinsEarned },
         xp: { increment: xpEarned }
       }
     });
 
-    // =========================================================
-    // 🎯 MISIONES: EL INSPECTOR EN ACCIÓN
-    // =========================================================
-    // Le avisamos al sistema de misiones lo que acaba de lograr el jugador
     await this.missionService.advanceProgress(data.userId, {
       gamesPlayed: 1, 
       coinsEarned: coinsEarned, 
       scoreEarned: finalScoreToSave    
     });
 
+    await this.leaderboardService.updateScore(data.userId, 'ARCADE', finalScoreToSave);
+
     return {
       success: true,
       sessionId: session.id,
       finalScore: finalScoreToSave,
-      coinsEarned, // Enviamos el pago al front
-      xpEarned,    // Enviamos la experiencia al front
+      coinsEarned, 
+      xpEarned,    
       isAdjusted,
       message: isAdjusted 
         ? 'Discrepancia detectada. Tu puntaje oficial fue ajustado por el servidor.'
@@ -187,9 +186,10 @@ export class GameService {
     };
   }
 
-  async getUserInventory(userId: string = 'cmm8bj5pr0000n49toufqk6gd') {
+  // CORRECCIÓN 2: Eliminado el ID hardcodeado
+  async getUserInventory(userId: string) {
     const userCards = await this.prisma.userCard.findMany({
-      where: { userId: userId },
+      where: { userId: userId }, // 👈 Usa el ID real
       include: {
         card: true, 
       },
