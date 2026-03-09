@@ -1,5 +1,4 @@
-
-import { IsInt, IsString, IsNotEmpty, IsEnum, } from 'class-validator';
+import { IsInt, IsString, IsNotEmpty, IsEnum, IsArray, IsOptional } from 'class-validator';
 
 export enum Rarity {
   COMMON = 'COMMON',
@@ -18,15 +17,21 @@ export class CreateCardDto {
   @IsNotEmpty()
   title!: string;
 
+  @IsOptional() // Lo hacemos opcional por si TMDB no tiene póster
   @IsString()
-  @IsNotEmpty()
-  posterPath!: string;
+  posterPath?: string;
 
-  @IsString()
+  @IsInt() // Cambiamos releaseDate por year (como lo manda el frontend)
   @IsNotEmpty()
-  releaseDate!: string;
+  year!: number;
 
   @IsEnum(Rarity)
   @IsNotEmpty()
   rarity!: Rarity;
+
+  // 🔥 NUEVO: Validamos el array de categorías
+  @IsArray()
+  @IsString({ each: true }) // Cada elemento del array debe ser un string
+  @IsNotEmpty()
+  categories!: string[]; 
 }

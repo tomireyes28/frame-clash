@@ -3,11 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link'; // 👈 Importamos Link para el botón de La Bóveda
 import { TmdbService, TmdbMovie } from '@/services/tmdb.service';
 import MovieModal from '@/components/admin/MovieModal'; 
-import { CardsService } from '@/services/cards.service';
+import { CardsService, VaultCard } from '@/services/cards.service';
 
-const GENRES = [
+const TMDB_SEARCH_GENRES = [
   { id: '', name: 'Todos los géneros' },
   { id: '28', name: 'Acción' },
   { id: '12', name: 'Aventura' },
@@ -16,14 +17,12 @@ const GENRES = [
   { id: '18', name: 'Drama' },
   { id: '14', name: 'Fantasía' },
   { id: '27', name: 'Terror' },
-  { id: '53', name: 'Suspense' }
 ];
 
 export default function AdminDashboard() {
   const [movies, setMovies] = useState<TmdbMovie[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const [dbCards, setDbCards] = useState<any[]>([]);
+  const [dbCards, setDbCards] = useState<VaultCard[]>([]);
   
   const [query, setQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
@@ -32,13 +31,13 @@ export default function AdminDashboard() {
 
   const [selectedMovie, setSelectedMovie] = useState<TmdbMovie | null>(null);
 
-  // Al iniciar, buscamos las de TMDB y también nuestro inventario de la DB
   useEffect(() => {
     fetchPopular();
     fetchInventory();
+    // 🔥 Apagamos la advertencia amarilla del linter para esta línea
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGenre, minYear, maxYear]);
 
-  // Función para traer tu inventario
   const fetchInventory = async () => {
     try {
       const cards = await CardsService.getAllCards();
@@ -55,9 +54,7 @@ export default function AdminDashboard() {
       setMovies(data);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -71,25 +68,21 @@ export default function AdminDashboard() {
       setMovies(data);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  const handleSaveCard = async (movie: TmdbMovie, rarity: string) => {
+  const handleSaveCard = async (movie: TmdbMovie, rarity: string, categories: string[]) => {
     try {
-      await CardsService.saveCard(movie, rarity);
-      // ACTUALIZAMOS EL INVENTARIO SIN RECARGAR LA PÁGINA
+      await CardsService.saveCard(movie, rarity, categories);
       await fetchInventory(); 
       setSelectedMovie(null); 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      alert(`❌ ERROR: ${errorMessage}`);
+      alert(`❌ ERROR: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
-  // 🔥 CÁLCULO DE ESTADÍSTICAS EN TIEMPO REAL
-  const stats = dbCards.reduce((acc, card) => {
+  // 🔥 CHAU ERROR ROJO: Le decimos a TypeScript que este objeto acepta strings como llaves y numbers como valores
+  const stats = dbCards.reduce((acc: Record<string, number>, card) => {
     acc[card.rarity] = (acc[card.rarity] || 0) + 1;
     acc.total += 1;
     return acc;
@@ -100,40 +93,44 @@ export default function AdminDashboard() {
       <header className="mb-6 border-b border-gray-700 pb-6 flex flex-col gap-6">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-4xl font-black text-[#E50914] tracking-wider drop-shadow-md">
-              FRAME CLASH
-            </h1>
-            <p className="text-gray-300 font-light mt-1">Panel de Curación (Admin)</p>
+            <h1 className="text-4xl font-black text-[#E50914] tracking-wider drop-shadow-md">FRAME CLASH</h1>
+            <p className="text-gray-300 font-light mt-1">La Forja del Admin</p>
           </div>
           
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="text" placeholder="Buscar peli exacta..." value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="px-4 py-2 rounded bg-[#09090b] border border-gray-600 focus:outline-none focus:border-[#E50914] text-white w-64"
-            />
-            <button type="submit" className="px-4 py-2 bg-[#E50914] font-bold rounded hover:bg-red-700 transition-colors">
-              Buscar
-            </button>
-          </form>
+          <div className="flex gap-4 items-center">
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <input
+                type="text" placeholder="Buscar peli exacta..." value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="px-4 py-2 rounded bg-[#09090b] border border-gray-600 focus:border-[#E50914] outline-none w-64"
+              />
+              <button type="submit" className="px-4 py-2 bg-[#E50914] font-bold rounded hover:bg-red-700 transition-colors">
+                Buscar
+              </button>
+            </form>
+            
+            {/* 🔥 NUEVO BOTÓN: Puente a La Bóveda */}
+            <Link href="/admin/vault" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 font-bold rounded transition-colors shadow-lg">
+              🏦 Ir a La Bóveda
+            </Link>
+          </div>
         </div>
 
         <div className="flex gap-4 p-4 bg-[#09090b] rounded-lg border border-gray-700 items-center">
-          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Explorar:</span>
+          <span className="text-sm font-bold text-gray-400 uppercase tracking-wider">Explorar TMDB:</span>
           
-          <select value={selectedGenre} onChange={(e) => { setQuery(''); setSelectedGenre(e.target.value); }} className="px-3 py-2 bg-[#0f3a61] border border-gray-600 rounded text-sm focus:border-[#E50914] outline-none">
-            {GENRES.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          <select value={selectedGenre} onChange={(e) => { setQuery(''); setSelectedGenre(e.target.value); }} className="px-3 py-2 bg-[#0f3a61] border border-gray-600 rounded text-sm outline-none">
+            {TMDB_SEARCH_GENRES.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
 
-          <input type="number" placeholder="Año Min" value={minYear} onChange={(e) => { setQuery(''); setMinYear(e.target.value); }} className="px-3 py-2 bg-[#0f3a61] border border-gray-600 rounded text-sm w-32 focus:border-[#E50914] outline-none" />
-          <input type="number" placeholder="Año Max" value={maxYear} onChange={(e) => { setQuery(''); setMaxYear(e.target.value); }} className="px-3 py-2 bg-[#0f3a61] border border-gray-600 rounded text-sm w-32 focus:border-[#E50914] outline-none" />
+          <input type="number" placeholder="Año Min" value={minYear} onChange={(e) => { setQuery(''); setMinYear(e.target.value); }} className="px-3 py-2 bg-[#0f3a61] border border-gray-600 rounded text-sm w-32 outline-none" />
+          <input type="number" placeholder="Año Max" value={maxYear} onChange={(e) => { setQuery(''); setMaxYear(e.target.value); }} className="px-3 py-2 bg-[#0f3a61] border border-gray-600 rounded text-sm w-32 outline-none" />
           
           <button onClick={() => { setSelectedGenre(''); setMinYear(''); setMaxYear(''); setQuery(''); }} className="text-xs text-gray-400 hover:text-white underline ml-auto">
             Limpiar Filtros
           </button>
         </div>
 
-        {/* 🔥 BARRA DE ESTADÍSTICAS */}
         <div className="flex gap-4 text-sm font-bold bg-[#09090b] p-3 rounded border border-gray-800 shadow-inner justify-between items-center">
           <span className="text-white bg-gray-700 px-3 py-1 rounded">Total Cartas: {stats.total}</span>
           <div className="flex gap-4">
@@ -153,7 +150,6 @@ export default function AdminDashboard() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {movies.map((movie) => {
-            // 🔥 CHEQUEAMOS SI LA PELI YA EXISTE EN NUESTRA DB
             const isAdded = dbCards.some(card => card.tmdbId === movie.id);
 
             return (
@@ -161,9 +157,8 @@ export default function AdminDashboard() {
                 key={movie.id} 
                 className={`bg-[#09090b] rounded-lg overflow-hidden border transition-all flex flex-col relative
                   ${isAdded ? 'border-green-500 opacity-80 cursor-default' : 'border-gray-700 hover:border-[#E50914] hover:scale-105 cursor-pointer group shadow-lg'}`}
-                onClick={() => !isAdded && setSelectedMovie(movie)} // Solo abre el modal si NO está agregada
+                onClick={() => !isAdded && setSelectedMovie(movie)} 
               >
-                {/* 🔥 OVERLAY VERDE SI YA EXISTE */}
                 {isAdded && (
                   <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
                     <span className="bg-green-600 text-white px-4 py-2 rounded-lg font-black tracking-widest shadow-xl rotate-12 border-2 border-green-400">

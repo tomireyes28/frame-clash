@@ -1,19 +1,21 @@
-// web/src/components/admin/MovieModal.tsx
+// web/src/components/admin/EditCardModal.tsx
 import { useState } from 'react';
 import Image from 'next/image';
-import { TmdbMovie } from '@/services/tmdb.service';
 import { OFFICIAL_CATEGORIES } from '@/utils/categories';
+import { VaultCard, CardCategory } from '@/services/cards.service'; // 👈 Importamos los tipos
 
-interface MovieModalProps {
-  movie: TmdbMovie;
+interface EditModalProps {
+  card: VaultCard; 
   onClose: () => void;
-  // 🔥 ACTUALIZADO: Ahora onSave recibe el array de categorías
-  onSave: (movie: TmdbMovie, rarity: string, categories: string[]) => void; 
+  onSave: (id: string, rarity: string, categories: string[]) => void;
 }
 
-export default function MovieModal({ movie, onClose, onSave }: MovieModalProps) {
-  const [rarity, setRarity] = useState('COMMON');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+export default function EditCardModal({ card, onClose, onSave }: EditModalProps) {
+  const [rarity, setRarity] = useState(card.rarity);
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    card.categories ? card.categories.map((c: CardCategory) => c.key) : []
+  );
 
   const toggleCategory = (key: string) => {
     setSelectedCategories((prev) => 
@@ -26,7 +28,7 @@ export default function MovieModal({ movie, onClose, onSave }: MovieModalProps) 
       alert('⚠️ Debes seleccionar al menos 1 categoría.');
       return;
     }
-    onSave(movie, rarity, selectedCategories);
+    onSave(card.id, rarity, selectedCategories);
   };
 
   return (
@@ -35,37 +37,35 @@ export default function MovieModal({ movie, onClose, onSave }: MovieModalProps) 
         
         {/* Poster */}
         <div className="w-1/3 bg-gray-900 relative hidden md:block">
-          {movie.poster_path ? (
-             <Image src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title} fill className="object-cover" />
+          {card.posterPath ? (
+             <Image src={`https://image.tmdb.org/t/p/w500${card.posterPath}`} alt={card.title} fill className="object-cover" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-gray-500">Sin póster</div>
           )}
         </div>
 
-        {/* Controles de Forja */}
+        {/* Controles de Edición */}
         <div className="p-6 flex-1 flex flex-col max-h-[85vh] overflow-y-auto">
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
           
-          <h2 className="text-3xl font-black text-[#E50914] mb-1">{movie.title}</h2>
-          <p className="text-gray-400 text-sm mb-6">{movie.release_date} • TMDB ID: {movie.id}</p>
+          <h2 className="text-3xl font-black text-blue-500 mb-1">Editar: {card.title}</h2>
+          <p className="text-gray-400 text-sm mb-6">{card.year} • RAREZA ACTUAL: {card.rarity}</p>
 
-          {/* RAREZA */}
           <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Rareza de la Carta</label>
+            <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Nueva Rareza</label>
             <select 
               value={rarity} 
               onChange={(e) => setRarity(e.target.value)}
-              className="w-full bg-[#0f3a61] border border-gray-600 rounded p-3 text-white focus:border-[#E50914] outline-none font-bold"
+              className="w-full bg-[#0f3a61] border border-gray-600 rounded p-3 text-white outline-none font-bold"
             >
-              <option value="COMMON">⚪ Común (60%)</option>
-              <option value="UNCOMMON">🟢 Poco Común (25%)</option>
-              <option value="RARE">🔵 Rara (10%)</option>
-              <option value="EPIC">🟣 Épica (4%)</option>
-              <option value="LEGENDARY">🟡 Legendaria (1%)</option>
+              <option value="COMMON">⚪ Común</option>
+              <option value="UNCOMMON">🟢 Poco Común</option>
+              <option value="RARE">🔵 Rara</option>
+              <option value="EPIC">🟣 Épica</option>
+              <option value="LEGENDARY">🟡 Legendaria</option>
             </select>
           </div>
 
-          {/* CATEGORÍAS (Multi-select) */}
           <div className="mb-6 flex-1">
             <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">
               Categorías ({selectedCategories.length} seleccionadas)
@@ -77,7 +77,7 @@ export default function MovieModal({ movie, onClose, onSave }: MovieModalProps) 
                     type="checkbox" 
                     checked={selectedCategories.includes(cat.key)}
                     onChange={() => toggleCategory(cat.key)}
-                    className="accent-[#E50914] w-4 h-4"
+                    className="accent-blue-500 w-4 h-4"
                   />
                   <span className={`text-sm ${selectedCategories.includes(cat.key) ? 'text-white font-bold' : 'text-gray-400'}`}>
                     {cat.label}
@@ -87,11 +87,10 @@ export default function MovieModal({ movie, onClose, onSave }: MovieModalProps) 
             </div>
           </div>
 
-          {/* Acciones */}
           <div className="flex justify-end gap-4 mt-auto pt-4 border-t border-gray-800">
             <button onClick={onClose} className="px-6 py-2 text-gray-400 hover:text-white font-bold transition-colors">Cancelar</button>
-            <button onClick={handleSave} className="px-8 py-2 bg-[#E50914] hover:bg-red-700 text-white font-bold rounded shadow-lg shadow-red-900/50 transition-all hover:scale-105">
-              FORJAR CARTA
+            <button onClick={handleSave} className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded shadow-lg transition-all">
+              GUARDAR CAMBIOS
             </button>
           </div>
         </div>

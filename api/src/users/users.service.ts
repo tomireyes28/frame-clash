@@ -1,7 +1,7 @@
 // api/src/users/users.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client';
+import { User, Role } from '@prisma/client';
 import { CreateUserFromGoogleDto } from './dto/create-user.dto';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class UsersService {
         email: data.email,
         name: data.name,
         image: data.image,
-        role: data.role || 'USER', //
+        role: (data.role as Role) || Role.USER, 
       },
     });
   }

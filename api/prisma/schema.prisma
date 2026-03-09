@@ -112,7 +112,9 @@ model Category {
   tmdbId           Int?     
   
   createdAt        DateTime @default(now())
-  cardsWithPowerUp Card[]   @relation("PowerUpCategory")
+  
+  cardsWithPowerUp Card[]   @relation("PowerUpCategory") // (El que ya tenías para el poder)
+  cards            Card[]   @relation("CardCategories")  // NUEVO: Cartas que tienen esta categoría
 }
 
 model Card {
@@ -123,6 +125,9 @@ model Card {
   posterPath       String?
   rarity           Rarity   @default(COMMON)
   
+  // NUEVO: Las categorías a las que pertenece la película (Ej: Acción, Aventura, Años 80)
+  categories       Category[] @relation("CardCategories")
+
   // === MATRIZ DE POWER-UPS (El Sistema Lego) ===
   powerUpTrigger   TriggerType?    
   powerUpCondition ConditionType?  
@@ -135,7 +140,7 @@ model Card {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  owners           UserCard[] // NUEVO: Usuarios que poseen esta carta
+  owners           UserCard[] // Usuarios que poseen esta carta
 }
 
 // NUEVO: LA BILLETERA DE CARTAS (Inventario y Mazo)
