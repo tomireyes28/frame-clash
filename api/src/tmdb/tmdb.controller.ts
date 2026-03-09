@@ -1,6 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { TmdbService } from './tmdb.service';
-import { TmdbMovie } from './interfaces/tmdb.interface';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
@@ -9,18 +8,22 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 export class TmdbController {
   constructor(private readonly tmdbService: TmdbService) {}
 
+  
+
   @Get('popular')
-  async getPopularMovies(
-    @Query('genre') genreId?: string,
+  async getPopular(
+    @Query('genre') genre?: string,
     @Query('minYear') minYear?: string,
     @Query('maxYear') maxYear?: string,
-  ): Promise<TmdbMovie[]> {
-    return this.tmdbService.getPopularMovies(genreId, minYear, maxYear);
+    @Query('page') page?: string, // 👈 Recibimos la página
+  ) {
+    const chunk = page ? parseInt(page, 10) : 1;
+    return this.tmdbService.getPopularMovies(genre, minYear, maxYear, chunk);
   }
 
   @Get('search')
-  async searchMovie(@Query('q') query: string): Promise<TmdbMovie[]> {
-    if (!query) return [];
-    return this.tmdbService.searchMovie(query);
+  async search(@Query('q') query: string, @Query('page') page?: string) {
+    const chunk = page ? parseInt(page, 10) : 1;
+    return this.tmdbService.searchMovie(query, chunk);
   }
 }

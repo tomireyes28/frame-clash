@@ -16,9 +16,13 @@ export interface AuditLogEntry {
 
 export interface PowerUp {
   id: string;
-  title: string;
   action: string;
-  value: number;
+  value: number | null;
+  tmdbId: number;
+  title: string;
+  year: number;
+  posterPath: string | null;
+  rarity: string;
 }
 
 type GameStatus = 'idle' | 'playing' | 'finished';

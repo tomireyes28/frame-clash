@@ -2,16 +2,28 @@ import Cookies from 'js-cookie'; // 👈 Importamos js-cookie
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
+export interface InventoryCategory {
+  id?: string;
+  key: string;
+}
+
 export interface InventoryCard {
-  id: string;
-  title: string;
-  posterPath: string | null;
-  rarity: 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
-  powerUpAction: string | null;
-  powerUpValue: number | null;
+  id: string;          // ID de la relación UserCard
+  cardId: string;      // ID de la carta base
   quantity: number;
   level: number;
-  equippedModes: string[];
+  
+  // Datos de la película (aplanados o dentro de un objeto 'card', según tu backend)
+  tmdbId: number;
+  title: string;
+  year: number;
+  posterPath: string | null;
+  rarity: string;
+  
+  // 🔥 Acá sumamos las categorías y los poderes para que TypeScript no llore
+  categories?: InventoryCategory[];
+  powerUpAction?: string;
+  powerUpValue?: number;
 }
 
 export interface UpgradeResponse {

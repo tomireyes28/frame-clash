@@ -3,10 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import { inventoryService, InventoryCard } from '@/services/inventory.service';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+import GameCard, { CardData } from '@/components/game/GameCard';
 
 export default function InventoryPage() {
   const [cards, setCards] = useState<InventoryCard[]>([]);
@@ -34,13 +32,11 @@ export default function InventoryPage() {
     setUpgradeError(null);
     try {
       const result = await inventoryService.upgradeCard(cardId);
-      // Animación súper simple: recargamos el inventario para ver los nuevos datos
       await loadInventory();
       alert(`🎉 ${result.message}\nTe quedan ${result.newBalance} monedas.`);
     } catch (err) {
       if (err instanceof Error) {
         setUpgradeError(err.message);
-        // Borramos el error a los 3 segundos
         setTimeout(() => setUpgradeError(null), 3000);
       }
     } finally {
@@ -86,39 +82,40 @@ export default function InventoryPage() {
       </AnimatePresence>
 
       {/* GRILLA DE CARTAS */}
-      <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20">
         {cards.map((card) => {
-          // Matemática de Fusión
           const currentLevel = card.level;
           const isMaxLevel = currentLevel >= 5;
           const requiredDupes = currentLevel * 2;
-          const currentDupes = card.quantity - 1; // Restamos la carta base
+          const currentDupes = card.quantity - 1; 
           const progressPercent = Math.min((currentDupes / requiredDupes) * 100, 100);
           const canUpgrade = currentDupes >= requiredDupes && !isMaxLevel;
           const upgradeCost = currentLevel * 50;
 
+          // 🔥 Tipado estricto sin ANY usando la interfaz CardData
+          const gameCardData: CardData = {
+            id: card.id,
+            tmdbId: card.tmdbId || 0,
+            title: card.title,
+            year: card.year || 2024,
+            posterPath: card.posterPath,
+            rarity: card.rarity || 'COMMON',
+            categories: card.categories || [],
+          };
+
           return (
             <div key={card.id} className="flex flex-col items-center bg-black/40 p-3 rounded-2xl border border-gray-800 hover:border-gray-600 transition-colors">
               
-              {/* LA CARTA */}
-              <div className="relative w-full aspect-2/3 rounded-xl overflow-hidden border-2 border-[#E50914] shadow-lg mb-4">
-                {card.posterPath ? (
-                  <Image src={`${TMDB_IMAGE_BASE}${card.posterPath}`} alt={card.title} fill sizes="(max-width: 768px) 50vw, 20vw" className="object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gray-900 flex items-center justify-center text-center p-2 font-bold text-sm">{card.title}</div>
-                )}
-                
-                {/* Badge de Nivel */}
-                <div className="absolute top-2 right-2 bg-black/90 px-2 py-1 text-xs font-black rounded-full border border-yellow-500 text-yellow-500 shadow-md">
+              <div className="relative w-full aspect-2/3 mb-4">
+                <div className="absolute -top-3 -right-3 z-30 bg-black px-2 py-1 text-[10px] md:text-xs font-black rounded-full border border-yellow-500 text-yellow-500 shadow-xl">
                   {isMaxLevel ? 'MAX' : `Nvl ${currentLevel}`}
                 </div>
 
-                {/* Acción del Poder */}
-                <div className="absolute bottom-0 w-full bg-linear-to-t from-black via-black/90 to-transparent pt-6 pb-2 text-center">
-                  <span className="text-[10px] md:text-xs font-black text-indigo-400 tracking-widest uppercase">
-                    {card.powerUpAction} {card.powerUpValue && `(${card.powerUpValue})`}
-                  </span>
-                </div>
+                <GameCard 
+                  card={gameCardData} 
+                  size="full" 
+                  isFlippable={true} 
+                />
               </div>
 
               {/* BARRA DE PROGRESO / BOTÓN DE MEJORA */}
@@ -141,7 +138,7 @@ export default function InventoryPage() {
                       <span>Repetidas</span>
                       <span>{currentDupes} / {requiredDupes}</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
                       <div 
                         className="h-full bg-blue-500 transition-all duration-500"
                         style={{ width: `${progressPercent}%` }}

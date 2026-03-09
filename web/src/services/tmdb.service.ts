@@ -9,31 +9,32 @@ export interface TmdbMovie {
   release_date: string;
 }
 
-// Helper de seguridad
 const getAuthHeaders = () => ({
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${Cookies.get('frameclash_token')}`
 });
 
 export const TmdbService = {
-  search: async (query: string) => {
-    const res = await fetch(`${API_URL}/tmdb/search?q=${encodeURIComponent(query)}`, {
-      headers: getAuthHeaders(), // 👈 Candado abierto
+  // Le agregamos el parámetro page (por defecto 1)
+  search: async (query: string, page: number = 1) => {
+    const res = await fetch(`${API_URL}/tmdb/search?q=${encodeURIComponent(query)}&page=${page}`, {
+      headers: getAuthHeaders(),
     });
     if (!res.ok) throw new Error('Error al buscar en TMDB');
     return res.json();
   },
 
-  getPopular: async (genre?: string, minYear?: string, maxYear?: string) => {
+  getPopular: async (genre?: string, minYear?: string, maxYear?: string, page: number = 1) => {
     const params = new URLSearchParams();
     if (genre) params.append('genre', genre);
     if (minYear) params.append('minYear', minYear);
     if (maxYear) params.append('maxYear', maxYear);
+    params.append('page', page.toString()); // 👈 Enviamos la página al backend
     
-    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const queryString = `?${params.toString()}`;
     
     const res = await fetch(`${API_URL}/tmdb/popular${queryString}`, {
-      headers: getAuthHeaders(), // 👈 Candado abierto
+      headers: getAuthHeaders(),
     });
     
     if (!res.ok) throw new Error('Error al obtener populares');

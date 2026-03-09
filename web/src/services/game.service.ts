@@ -23,15 +23,18 @@ export interface SubmitGameResponse {
 
 export interface InventoryCard {
   id: string;
+  cardId: string;
+  tmdbId: number;           // 🔥 Faltaba
   title: string;
-  year: number;
+  year: number;             // 🔥 Faltaba
   posterPath: string | null;
-  rarity: 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+  rarity: string;
+  level: number;
+  quantity: number;
+  equippedModes: string[];
+  categories?: { key: string }[]; // 🔥 Faltaba
   powerUpAction: string | null;
   powerUpValue: number | null;
-  quantity: number;
-  level: number;
-  equippedModes: string[];
 }
 
 // 🛠️ Helper function para no repetir código: Obtiene los headers de autorización

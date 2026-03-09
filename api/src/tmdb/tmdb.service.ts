@@ -1,9 +1,7 @@
-// api/src/tmdb/tmdb.service.ts
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { AxiosError } from 'axios';
+import { AxiosRequestConfig, AxiosError } from 'axios'; // 👈 Tipos estrictos de Axios
 import 'dotenv/config';
 import { 
   TmdbMovie, TmdbSearchResponse, DiscoverQueryParams, 
@@ -14,63 +12,86 @@ import {
 export class TmdbService {
   constructor(private readonly httpService: HttpService) {}
 
-  async searchMovie(query: string): Promise<TmdbMovie[]> {
-    const url = `${process.env.TMDB_BASE_URL}/search/movie`;
-    const config = {
-      params: { query, language: 'es-ES', page: 1, include_adult: false },
-      headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
-    };
-
-    const { data } = await firstValueFrom(
-      this.httpService.get<TmdbSearchResponse>(url, config).pipe(
-        catchError((error: AxiosError) => {
-          console.error('Error conectando con TMDB:', error.response?.data || error.message);
-          throw new HttpException('Error al comunicarse con la API de TMDB', HttpStatus.BAD_GATEWAY);
-        }),
-      ),
-    );
-
-    return data.results;
+  // 🔥 1. Tipamos config como AxiosRequestConfig para quitar el error amarillo
+  private async fetchFromTmdb(url: string, config: AxiosRequestConfig): Promise<TmdbMovie[]> {
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get<TmdbSearchResponse>(url, config)
+      );
+      return data.results || [];
+    } catch (error: unknown) { // 🔥 2. Chau 'any', hola 'unknown'
+      // 3. Verificamos el tipo de error para leerlo seguro sin que llore el linter
+      if (error instanceof AxiosError) {
+        console.error(`Error TMDB (Status ${error.response?.status}):`, error.response?.data || error.message);
+      } else if (error instanceof Error) {
+        console.error('Error interno TMDB:', error.message);
+      }
+      return [];
+    }
   }
 
-  async getPopularMovies(genreId?: string, minYear?: string, maxYear?: string): Promise<TmdbMovie[]> {
+ async searchMovie(query: string, chunk: number = 1): Promise<TmdbMovie[]> {
+    const url = `${process.env.TMDB_BASE_URL}/search/movie`;
+    
+    // 🔥 LÓGICA DE BLOQUES: Si chunk=1 (1,2,3), Si chunk=2 (4,5,6)
+    const startPage = (chunk - 1) * 3 + 1;
+    const pagesToFetch = [startPage, startPage + 1, startPage + 2];
+
+    const requests = pagesToFetch.map(page => {
+      const config: AxiosRequestConfig = {
+        params: { 
+          query, language: 'es-MX', page, include_adult: false, include_image_language: 'es-AR,es-MX,es,en,null' 
+        },
+        headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
+      };
+      return this.fetchFromTmdb(url, config);
+    });
+
+    const results = await Promise.all(requests);
+    const allMovies = results.flat();
+    return Array.from(new Map(allMovies.map(m => [m.id, m])).values());
+  }
+
+  async getPopularMovies(genreId?: string, minYear?: string, maxYear?: string, chunk: number = 1): Promise<TmdbMovie[]> {
     const url = `${process.env.TMDB_BASE_URL}/discover/movie`;
-    const queryParams: DiscoverQueryParams = {
-      language: 'es-ES', page: 1, sort_by: 'vote_count.desc', include_adult: false,
-    };
+    
+    // 🔥 LÓGICA DE BLOQUES
+    const startPage = (chunk - 1) * 3 + 1;
+    const pagesToFetch = [startPage, startPage + 1, startPage + 2];
 
-    if (genreId) queryParams.with_genres = genreId;
-    if (minYear) queryParams['primary_release_date.gte'] = `${minYear}-01-01`;
-    if (maxYear) queryParams['primary_release_date.lte'] = `${maxYear}-12-31`;
+    const requests = pagesToFetch.map(page => {
+      const queryParams: DiscoverQueryParams = {
+        language: 'es-MX', page, sort_by: 'vote_count.desc', include_adult: false,
+      };
 
-    const config = {
-      params: queryParams,
-      headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
-    };
+      if (genreId) queryParams.with_genres = genreId;
+      if (minYear) queryParams['primary_release_date.gte'] = `${minYear}-01-01`;
+      if (maxYear) queryParams['primary_release_date.lte'] = `${maxYear}-12-31`;
 
-    const { data } = await firstValueFrom(
-      this.httpService.get<TmdbSearchResponse>(url, config).pipe(
-        catchError((error: AxiosError) => {
-          console.error('Error conectando con TMDB (Popular):', error.response?.data || error.message);
-          throw new HttpException('Error al obtener populares', HttpStatus.BAD_GATEWAY);
-        }),
-      ),
-    );
+      const config: AxiosRequestConfig = {
+        params: { ...queryParams, include_image_language: 'es-AR,es-MX,es,en,null' },
+        headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
+      };
 
-    return data.results;
+      return this.fetchFromTmdb(url, config);
+    });
+
+    const results = await Promise.all(requests);
+    const allMovies = results.flat();
+    return Array.from(new Map(allMovies.map(m => [m.id, m])).values());
   }
 
   async getMovieDetails(movieId: number): Promise<TmdbMovieDetails | null> {
-    const url = `${process.env.TMDB_BASE_URL}/movie/${movieId}?append_to_response=credits&language=es-ES`;
-    const config = {
+    const url = `${process.env.TMDB_BASE_URL}/movie/${movieId}?append_to_response=credits&language=es-MX`;
+    const config: AxiosRequestConfig = {
       headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
     };
 
     try {
       const { data } = await firstValueFrom(this.httpService.get<TmdbMovieDetails>(url, config));
       return data;
-    } catch (error) {
-      console.error(`Error trayendo detalles de la peli ${movieId}:`, error);
+    } catch (error: unknown) {
+      if (error instanceof Error) console.error(`Error peli ${movieId}:`, error.message);
       return null;
     }
   }
