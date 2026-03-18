@@ -1,59 +1,46 @@
+// src/pack/pack.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Rarity, Card, UserCard } from '@prisma/client';
+import { Card, UserCard, Prisma } from '@prisma/client';
+import { rollRarity, DropRates } from '../common/utils/rarity.util';
+
+// Interfaz para saber qué forma tiene la configuración que llega
+interface PackConfig {
+  size: number;
+  dropRates: DropRates;
+}
 
 @Injectable()
 export class PackService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // =========================================================
-  // 🎰 LA RULETA DE PROBABILIDADES
-  // =========================================================
-  private rollRarity(): Rarity {
-    const roll = Math.random() * 100;
-    
-    // Distribución: 2% Legendaria, 8% Épica, 15% Rara, 25% Poco Común, 50% Común
-    if (roll <= 2) return 'LEGENDARY'; 
-    if (roll <= 10) return 'EPIC';     
-    if (roll <= 25) return 'RARE';     
-    if (roll <= 50) return 'UNCOMMON'; 
-    
-    return 'COMMON';                   
-  }
-
-  // =========================================================
-  // 🎁 ABRIR UN SOBRE ESTÁNDAR (5 Cartas)
-  // =========================================================
-  async openStandardPack(userId: string) {
-    const PACK_SIZE = 5;
-    
-    // 🛠️ SOLUCIÓN 2: Le decimos a TypeScript exactamente qué va a guardar este array
+  async openDynamicPack(userId: string, config: PackConfig, tx?: Prisma.TransactionClient) {
+    const db = tx || this.prisma;
     const pulledCards: (UserCard & { card: Card })[] = [];
 
-    for (let i = 0; i < PACK_SIZE; i++) {
-      // 🛠️ SOLUCIÓN 3: Cambiamos 'let' por 'const' (regla de ESLint)
-      const targetRarity = this.rollRarity();
+    for (let i = 0; i < config.size; i++) {
+      // Usamos nuestra ruleta externa inyectándole las probabilidades del sobre
+      const targetRarity = rollRarity(config.dropRates);
 
-      let availableCards = await this.prisma.card.findMany({
+      let availableCards = await db.card.findMany({
         where: { rarity: targetRarity },
         select: { id: true }
       });
 
-      // 🛡️ FALLBACK
       if (availableCards.length === 0) {
-        availableCards = await this.prisma.card.findMany({
+        availableCards = await db.card.findMany({
           select: { id: true } 
         });
         
         if (availableCards.length === 0) {
-            throw new InternalServerErrorException('No hay cartas en la base de datos para armar sobres.');
+            throw new InternalServerErrorException('No hay cartas en la base de datos.');
         }
       }
 
       const randomIndex = Math.floor(Math.random() * availableCards.length);
       const selectedCardId = availableCards[randomIndex].id;
 
-      const userCard = await this.prisma.userCard.upsert({
+      const userCard = await db.userCard.upsert({
         where: {
           userId_cardId: { userId, cardId: selectedCardId }
         },
@@ -75,7 +62,6 @@ export class PackService {
       pulledCards.push(userCard);
     }
 
-    // Devolvemos el botín formateado
     return {
       success: true,
       cards: pulledCards.map(uc => ({

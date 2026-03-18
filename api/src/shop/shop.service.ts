@@ -1,47 +1,44 @@
+// src/shop/shop.service.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PackService } from '../pack/pack.service';
+import { PACK_CONFIGS, PackType } from '../common/constants/packs.config';
 
 @Injectable()
 export class ShopService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly packService: PackService, // Inyectamos el Crupier
+    private readonly packService: PackService,
   ) {}
 
-  async buyStandardPack(userId: string) {
-    const PACK_PRICE = 100; // Cuesta 100 monedas
+  async buyPack(userId: string, packId: string) {
+    const packConfig = PACK_CONFIGS[packId as PackType];
 
-    // 1. Leemos la billetera del usuario
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { coins: true }
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: { coins: true }
+      });
+
+      if (!user) throw new BadRequestException('Usuario no encontrado.');
+      if (user.coins < packConfig.price) {
+        throw new BadRequestException(`Fondos insuficientes. Necesitás ${packConfig.price} monedas.`);
+      }
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { coins: { decrement: packConfig.price } }
+      });
+
+      // Le mandamos TODA la configuración del sobre al PackService
+      const packResult = await this.packService.openDynamicPack(userId, packConfig, tx);
+
+      return {
+        success: true,
+        message: `¡Sobre ${packId} abierto con éxito!`,
+        newBalance: user.coins - packConfig.price,
+        cards: packResult.cards 
+      };
     });
-
-    if (!user) {
-      throw new BadRequestException('Usuario no encontrado en los registros.');
-    }
-
-    // 2. ¿Tiene la plata?
-    if (user.coins < PACK_PRICE) {
-      throw new BadRequestException('Fondos insuficientes. ¡Volvé al Coliseo a ganar más monedas!');
-    }
-
-    // 3. ¡Cobrado! Le restamos las 100 monedas de la DB
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { coins: { decrement: PACK_PRICE } }
-    });
-
-    // 4. Le pedimos al Crupier que abra el sobre y haga el UPSERT de las cartas
-    const packResult = await this.packService.openStandardPack(userId);
-
-    // 5. Devolvemos las cartas nuevas y el vuelto (saldo actualizado)
-    return {
-      success: true,
-      message: '¡Compra exitosa!',
-      newBalance: user.coins - PACK_PRICE,
-      cards: packResult.cards 
-    };
   }
 }
