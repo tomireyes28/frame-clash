@@ -1,4 +1,5 @@
 // schema.prisma
+// Frame Clash - Core Database Schema v3
 
 generator client {
   provider = "prisma-client-js"
@@ -9,7 +10,7 @@ datasource db {
 }
 
 // ==========================================
-// 1. ENUMS (El Sistema Lego)
+// 1. ENUMS
 // ==========================================
 
 enum Role {
@@ -17,52 +18,59 @@ enum Role {
   ADMIN
 }
 
+// 3 Niveles de Dificultad
 enum Difficulty {
-  VERY_EASY
-  EASY
-  NORMAL
-  HARD
-  VERY_HARD
+  EASY // Nivel 1: Datos directos y obvios (Director, año, actor principal)
+  MEDIUM // Nivel 2: Contexto (Estudio, país, saga, duración, taquilla aprox)
+  HARD // Nivel 3: Detalle experto (Presupuesto exacto, fecha exacta, fotogramas, tagline, keywords)
 }
 
 enum Rarity {
-  COMMON
-  UNCOMMON
-  RARE
-  EPIC
-  LEGENDARY
+  COMMON // Común (Gris) - Condición estricta de categoría
+  UNCOMMON // Poco Común (Verde) - Condición de categoría
+  RARE // Rara (Azul) - Condición suave / "Si NO es categoría X"
+  EPIC // Épica (Púrpura) - Condición de resolución o sin restricción
+  LEGENDARY // Legendaria (Dorado) - Sin restricción
+  MYTHIC // Mítica (Holográfico) - Sin restricción + efecto amplificado
+  UNIQUE_LEGENDARY // Legendaria Única (Recompensa exclusiva de Dominio)
 }
 
 enum GameMode {
-  ARCADE
-  ROGUELITE
-  DUEL
+  CLASSIC // Trivia Clásica (10 preguntas)
+  ROGUELITE // Roguelite Infinito por tandas con puntaje mínimo
+  DOMINATION // Dominio por Categoría (10 nodos progresivos)
+  DRAFT // Modo Draft (3 rondas con mazo de 4 power-ups)
+  PVP_ASYNC // Duelo 1v1 Asincrónico por ELO
+  PVP_LIVE // Duelo 1v1 en Tiempo Real (3 rondas)
+  BATTLE_ROYALE // Battle Royale de 10 jugadores
 }
 
+// Capas de Power-Ups
 enum TriggerType {
-  CURRENT_QUESTION // Ej: Elimina 1 opción ahora
-  NEXT_QUESTION // Ej: En la próxima, elimina 2
-  PASSIVE // Ej: +10% de bonus pasivo
-  ROUND // Ej: 1 pregunta extra en la ronda
+  CURRENT_QUESTION // Efecto inmediato en la pregunta actual
+  NEXT_QUESTION // Efecto diferido para la próxima pregunta
+  PASSIVE // Pasivo (modificador permanente en la partida)
+  ROUND // Manipulación de la ronda / mazo
 }
 
 enum ConditionType {
-  NONE
-  ON_WIN // "Si aciertas..."
-  ON_LOSS // "Si fallas..."
-  IS_CATEGORY // "Si es de Categoría X..."
-  IS_NOT_CATEGORY // "Si no es de Categoría X..."
+  NONE // Sin condición (funciona siempre - típico en Legendarias/Míticas)
+  ON_WIN // "Si aciertas la pregunta actual..."
+  ON_LOSS // "Si fallas la pregunta actual..."
+  IS_CATEGORY // "Solo si la pregunta ES de Categoría X..."
+  IS_NOT_CATEGORY // "Solo si la pregunta NO ES de Categoría X..."
 }
 
 enum ActionType {
-  REMOVE_OPTION
-  EXTRA_CHANCE // "Intentar 1 vez más"
-  REVEAL_ANSWER
-  MULTIPLY_TIME
-  MULTIPLY_SCORE
-  CHANGE_CATEGORY // Cambiar la categoría de la pregunta
-  ADD_QUESTION // "1 pregunta extra en la ronda"
-  REMOVE_QUESTION
+  REMOVE_OPTION // Elimina 1 o 2 opciones incorrectas
+  EXTRA_CHANCE // Segunda oportunidad si fallas (1 o 2 intentos extra)
+  REVEAL_ANSWER // Revela la respuesta correcta
+  MULTIPLY_TIME // Multiplicador de bonus de tiempo (+10%, x2, x3)
+  MULTIPLY_SCORE // Multiplicador de puntos base (+10%, x2, x3)
+  GLOBAL_MULTIPLIER // Multiplicador global (x2, x3 total)
+  CHANGE_CATEGORY // Cambiar pregunta por otra categoría
+  ADD_QUESTION // +1 pregunta en la ronda
+  REMOVE_QUESTION // -1 pregunta en la ronda
 }
 
 enum MissionFrequency {
@@ -72,14 +80,18 @@ enum MissionFrequency {
 }
 
 enum MissionType {
-  PLAY_GAMES // "Juega X partidas"
-  EARN_COINS // "Gana X monedas"
-  SCORE_POINTS // "Consigue X puntos en total"
-  // Más adelante podés agregar cosas como PLAY_ACTION_CATEGORY
+  PLAY_GAMES
+  EARN_COINS
+  SCORE_POINTS
+  CORRECT_ANSWERS
+  OPEN_PACKS
+  PLAY_CATEGORY
 }
 
 enum RewardType {
   COINS
+  GEMS
+  STARDUST
   PACK
   CARD
 }
@@ -97,69 +109,99 @@ model User {
   role     Role    @default(USER)
 
   // ECONOMÍA Y PROGRESO
-  coins Int @default(0) // Monedas para comprar sobres base
-  gems  Int @default(0) // Moneda premium (tienda exclusiva)
-  level Int @default(1) // Nivel de la cuenta del jugador
-  xp    Int @default(0) // NUEVO: Experiencia acumulada para subir de nivel
+  coins    Int @default(0) // Monedas para sobres y tienda
+  gems     Int @default(0) // Moneda premium
+  stardust Int @default(0) // Polvo Estelar (obtenido de duplicados para crafteo)
+  level    Int @default(1) // Nivel de cuenta
+  xp       Int @default(0) // Experiencia acumulada
+
+  // COMPETITIVO & PERFIL
+  eloRating         Int       @default(1000)
+  rankTier          String    @default("bronze")
+  profileBackground String?
+  profileTitle      String?
+  loginStreak       Int       @default(0)
+  lastLogin         DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // RELACIONES
-  sessions  GameSession[]
-  inventory UserCard[]
-
-  missions    UserMission[]
-  collections UserCollection[]
+  sessions           GameSession[]
+  inventory          UserCard[]
+  missions           UserMission[]
+  collections        UserCollection[]
+  dominationProgress DominationProgress[]
+  rogueliteProgress  RogueliteProgress?
 }
 
 model Category {
-  id     String @id @default(cuid())
-  key    String @unique
+  id     String  @id @default(cuid())
+  key    String  @unique // Ej: 'ACTION', 'HORROR', 'ERA_BLOCKBUSTER_POP'
+  name   String? // Nombre para mostrar (ej: "Terror", "Años 80")
+  slug   String? // Slug para URLs (ej: "terror")
+  icon   String? // Emoji o icono (ej: "👻", "💥")
+  type   String? // 'genre' | 'decade' | 'theme'
   tmdbId Int?
 
   createdAt DateTime @default(now())
 
-  cardsWithPowerUp Card[] @relation("PowerUpCategory") // (El que ya tenías para el poder)
-  cards            Card[] @relation("CardCategories") // NUEVO: Cartas que tienen esta categoría
+  cardsWithPowerUp   Card[]               @relation("PowerUpCategory")
+  cards              Card[]               @relation("CardCategories")
+  dominationProgress DominationProgress[]
 }
 
 model Card {
-  id         String  @id @default(cuid())
-  tmdbId     Int     @unique
-  title      String
-  year       Int
-  posterPath String?
-  rarity     Rarity  @default(COMMON)
+  id            String  @id @default(cuid())
+  tmdbId        Int     @unique
+  title         String
+  originalTitle String?
+  year          Int
+  posterPath    String?
+  backdropPath  String?
+  rarity        Rarity  @default(COMMON)
+  borderColor   String?
 
-  // NUEVO: Las categorías a las que pertenece la película (Ej: Acción, Aventura, Años 80)
+  // STATS DE CARTA (Derivados de TMDB)
+  atk Int @default(50) // Basado en vote_average (Rating)
+  def Int @default(50) // Basado en popularity
+  spd Int @default(50) // Basado en runtime (más corta = más rápida)
+  box Int @default(50) // Basado en revenue (recaudación)
+  crt Int @default(50) // Stat general compuesto
+
+  // Categorías de la película (1 por década + 1 o 2 por género/tema, máx 3)
   categories Category[] @relation("CardCategories")
 
-  // === MATRIZ DE POWER-UPS (El Sistema Lego) ===
+  // === MATRIZ DE POWER-UPS (El Sistema de 4 Capas) ===
   powerUpTrigger   TriggerType?
   powerUpCondition ConditionType?
   powerUpAction    ActionType?
-  powerUpValue     Int?
+  powerUpValue     Int? // Valor numérico (ej: 1 para "quita 1 opción", 2 para "x2 bonus")
 
+  // Categoría objetivo si la condición es IS_CATEGORY o IS_NOT_CATEGORY
   targetCategoryId String?
   targetCategory   Category? @relation("PowerUpCategory", fields: [targetCategoryId], references: [id])
+
+  isUniqueLegendary Boolean @default(false) // TRUE si es recompensa única de Dominio
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owners      UserCard[] // Usuarios que poseen esta carta
+  owners      UserCard[]
   collections Collection[] @relation("CollectionCards")
+  questions   Question[]
 }
 
-// NUEVO: LA BILLETERA DE CARTAS (Inventario y Mazo)
+// INVENTARIO DEL JUGADOR
 model UserCard {
   id     String @id @default(cuid())
   userId String
   cardId String
 
-  quantity      Int        @default(1) // Por si le sale repetida en un sobre
-  level         Int        @default(1) // Por si a futuro se pueden mejorar
-  equippedModes GameMode[] // Lista de modos en los que esta carta está equipada
+  quantity      Int        @default(1) // Cantidad de copias
+  level         Int        @default(1) // Nivel de la carta (1, 2, 3) por duplicados
+  isFavorite    Boolean    @default(false)
+  equippedModes GameMode[] // Modos donde está equipada
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
@@ -167,21 +209,34 @@ model UserCard {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, cardId]) // Evita que un usuario tenga dos filas de la misma carta
+  @@unique([userId, cardId])
 }
 
 model Question {
   id            String     @id @default(cuid())
   text          String
   correctAnswer String
-  options       String[]
+  options       String[] // 4 opciones mezcladas
   difficulty    Difficulty
-  cardId        String?
-  categories    String[]
+
+  // METADATOS DE TRIVIA (24 tipos en 5 bloques)
+  block      Int? // 1: Elenco/Dirección, 2: Fechas, 3: Economía, 4: Cinéfilo, 5: Visual
+  typeNumber Int? // 1 a 24
+  imageUrl   String? // Para preguntas visuales (fotogramas / póster ciego)
+  isManual   Boolean @default(false)
+
+  timesServed  Int @default(0)
+  timesCorrect Int @default(0)
+
+  cardId     String?
+  card       Card?    @relation(fields: [cardId], references: [id])
+  categories String[] // Keys de categorías a las que aplica (ej: ['ACTION', 'ERA_BLOCKBUSTER_POP'])
+
+  createdAt DateTime @default(now())
 }
 
 // ==========================================
-// 3. HISTORIAL Y PARTIDAS
+// 3. HISTORIAL, PARTIDAS Y PROGRESIÓN
 // ==========================================
 
 model GameSession {
@@ -189,28 +244,72 @@ model GameSession {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  mode     GameMode @default(ARCADE)
-  score    Int      @default(0)
+  mode            GameMode @default(CLASSIC)
+  score           Int      @default(0) // Puntos totales (10.000 base + ms restantes)
+  correctCount    Int      @default(0)
+  totalQuestions  Int      @default(10)
+  coinsEarned     Int      @default(0)
+  xpEarned        Int      @default(0)
+  stars           Int? // 1-3 estrellas
+  avgResponseTime Int      @default(0) // Tiempo promedio en ms
+
   auditLog Json?
 
   createdAt DateTime @default(now())
 }
 
+// PROGRESO DE DOMINIO POR CATEGORÍA (10 nodos por categoría)
+model DominationProgress {
+  id         String @id @default(cuid())
+  userId     String
+  categoryId String
+  nodeNumber Int // 1 al 10
+
+  stars     Int       @default(0) // 0 a 3 estrellas
+  bestScore Int       @default(0)
+  completed Boolean   @default(false)
+  claimedAt DateTime?
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, categoryId, nodeNumber])
+}
+
+// PROGRESO ROGUELITE
+model RogueliteProgress {
+  id                   String @id @default(cuid())
+  userId               String @unique
+  bestWave             Int    @default(0) // Mejor tanda alcanzada
+  bestScore            Int    @default(0) // Mejor puntaje acumulado
+  totalRuns            Int    @default(0)
+  unlockedPowerUpSlots Int    @default(1) // 1 a 5 slots
+  stats                Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
+}
+
+// MISIONES
 model UserMission {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  frequency MissionFrequency // Para saber si es diaria, semanal, etc.
-  type      MissionType // Lo que tiene que hacer el jugador
-  title     String // Ej: "Juega 3 partidas en el Coliseo"
+  frequency    MissionFrequency
+  type         MissionType
+  title        String
+  targetValue  Int
+  currentValue Int              @default(0)
+  isCompleted  Boolean          @default(false)
+  rewardCoins  Int
+  rewardXp     Int              @default(50)
 
-  targetValue  Int // Ej: 3
-  currentValue Int     @default(0)
-  isCompleted  Boolean @default(false)
-  rewardCoins  Int // El premio
-
-  expiresAt DateTime // LA CLAVE: Cuándo desaparece esta misión
+  expiresAt DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -219,29 +318,25 @@ model UserMission {
 }
 
 // ==========================================
-// 4. COLECCIONES Y ÁLBUMES (Curados)
+// 4. COLECCIONES Y ÁLBUMES
 // ==========================================
 
 model Collection {
   id          String  @id @default(cuid())
-  name        String  @unique // Ej: "Trilogía El Padrino"
-  description String? // Ej: "Completa a la familia Corleone"
+  name        String  @unique // Ej: "Saga Star Wars", "Clásicos de Terror"
+  description String?
 
-  // Recompensa dinámica
   rewardType  RewardType @default(COINS)
-  rewardValue String // Ej: "1000" (monedas) o "PREMIUM" (packId)
-
-  isActive Boolean @default(true) // Por si querés apagar una colección temporal
+  rewardValue String // Valor o identificador del premio
+  isActive    Boolean    @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // RELACIONES
-  cards        Card[]           @relation("CollectionCards") // Las cartas que forman este álbum
-  userProgress UserCollection[] // Quiénes ya lo completaron
+  cards        Card[]           @relation("CollectionCards")
+  userProgress UserCollection[]
 }
 
-// LA LIBRETA DEL JUGADOR (Para no darle el premio dos veces)
 model UserCollection {
   id           String @id @default(cuid())
   userId       String
@@ -256,5 +351,5 @@ model UserCollection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, collectionId]) // Un usuario solo puede tener un registro por colección
+  @@unique([userId, collectionId])
 }
