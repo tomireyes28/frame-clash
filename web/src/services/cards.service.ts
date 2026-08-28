@@ -4,7 +4,6 @@ import { TmdbMovie } from './tmdb.service';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-// 🔥 1. CREAMOS LOS TIPOS ESTRICTOS
 export interface CardCategory {
   id: string;
   key: string;
@@ -17,23 +16,33 @@ export interface VaultCard {
   year: number;
   posterPath: string | null;
   rarity: string;
-  categories?: CardCategory[]; // Array de categorías opcional
+  powerUpAction?: string | null;
+  powerUpValue?: number | null;
+  categories?: CardCategory[];
 }
 
 const getAuthHeaders = () => ({
   'Content-Type': 'application/json',
-  'Authorization': `Bearer ${Cookies.get('frameclash_token')}`
+  Authorization: `Bearer ${Cookies.get('frameclash_token')}`,
 });
 
 export const CardsService = {
-  saveCard: async (movie: TmdbMovie, rarity: string, categories: string[]) => {
+  saveCard: async (
+    movie: TmdbMovie,
+    rarity: string,
+    categories: string[],
+    powerUpAction?: string,
+    powerUpValue?: number,
+  ) => {
     const payload = {
       tmdbId: movie.id,
       title: movie.title,
       year: movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : 0,
       posterPath: movie.poster_path,
       rarity,
-      categories
+      categories,
+      powerUpAction: powerUpAction || undefined,
+      powerUpValue: powerUpValue || undefined,
     };
 
     const res = await fetch(`${API_URL}/admin/cards`, {
@@ -58,11 +67,24 @@ export const CardsService = {
     return res.json();
   },
 
-  updateCard: async (id: string, rarity?: string, categories?: string[]) => {
-    // 🔥 2. CHAU ANY. Usamos un Partial para decirle que son opcionales
-    const payload: Partial<{ rarity: string; categories: string[] }> = {};
+  updateCard: async (
+    id: string,
+    rarity?: string,
+    categories?: string[],
+    powerUpAction?: string,
+    powerUpValue?: number,
+  ) => {
+    const payload: Partial<{
+      rarity: string;
+      categories: string[];
+      powerUpAction: string;
+      powerUpValue: number;
+    }> = {};
+
     if (rarity) payload.rarity = rarity;
     if (categories) payload.categories = categories;
+    if (powerUpAction) payload.powerUpAction = powerUpAction;
+    if (powerUpValue !== undefined) payload.powerUpValue = powerUpValue;
 
     const res = await fetch(`${API_URL}/admin/cards/${id}`, {
       method: 'PATCH',
@@ -76,5 +98,5 @@ export const CardsService = {
     }
 
     return res.json();
-  }
+  },
 };

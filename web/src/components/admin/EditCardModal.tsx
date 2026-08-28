@@ -1,96 +1,199 @@
 // web/src/components/admin/EditCardModal.tsx
-import { useState } from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { OFFICIAL_CATEGORIES } from '@/utils/categories';
-import { VaultCard, CardCategory } from '@/services/cards.service'; // 👈 Importamos los tipos
+import { VaultCard, CardCategory } from '@/services/cards.service';
 
 interface EditModalProps {
-  card: VaultCard; 
+  card: VaultCard;
   onClose: () => void;
-  onSave: (id: string, rarity: string, categories: string[]) => void;
+  onSave: (
+    id: string,
+    rarity: string,
+    categories: string[],
+    powerUpAction?: string,
+    powerUpValue?: number,
+  ) => void;
 }
+
+const RARITIES = [
+  { key: 'COMMON', label: 'Común', color: 'border-zinc-500 text-zinc-300 bg-zinc-800/40' },
+  { key: 'UNCOMMON', label: 'Inusual', color: 'border-emerald-500 text-emerald-300 bg-emerald-950/40' },
+  { key: 'RARE', label: 'Rara', color: 'border-sky-500 text-sky-300 bg-sky-950/40' },
+  { key: 'EPIC', label: 'Épica', color: 'border-purple-500 text-purple-300 bg-purple-950/40' },
+  { key: 'LEGENDARY', label: 'Legendaria', color: 'border-amber-400 text-amber-300 bg-amber-950/40' },
+];
+
+const POWER_UP_ACTIONS = [
+  { key: '', label: 'Sin Power-Up (Carta Estándar)' },
+  { key: 'REMOVE_OPTION', label: '✂️ Eliminar 2 Opciones (50/50)' },
+  { key: 'EXTRA_CHANCE', label: '🛡️ Escudo / Segunda Oportunidad' },
+  { key: 'REVEAL_ANSWER', label: '👁️ Revelar Respuesta Correcta' },
+  { key: 'MULTIPLY_SCORE', label: '⚡ Multiplicador de Puntos (x2)' },
+  { key: 'MULTIPLY_TIME', label: '⏱️ Congelar / Extender Tiempo' },
+];
 
 export default function EditCardModal({ card, onClose, onSave }: EditModalProps) {
   const [rarity, setRarity] = useState(card.rarity);
-
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    card.categories ? card.categories.map((c: CardCategory) => c.key) : []
+    card.categories ? card.categories.map((c: CardCategory) => c.key) : [],
   );
+  const [powerUpAction, setPowerUpAction] = useState<string>(card.powerUpAction || '');
+  const [powerUpValue, setPowerUpValue] = useState<number>(card.powerUpValue || 2);
 
   const toggleCategory = (key: string) => {
-    setSelectedCategories((prev) => 
-      prev.includes(key) ? prev.filter(c => c !== key) : [...prev, key]
+    setSelectedCategories((prev) =>
+      prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key],
     );
   };
 
   const handleSave = () => {
     if (selectedCategories.length === 0) {
-      alert('⚠️ Debes seleccionar al menos 1 categoría.');
+      alert('⚠️ Debes seleccionar al menos 1 categoría oficial.');
       return;
     }
-    onSave(card.id, rarity, selectedCategories);
+    onSave(
+      card.id,
+      rarity,
+      selectedCategories,
+      powerUpAction ? powerUpAction : undefined,
+      powerUpAction ? powerUpValue : undefined,
+    );
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#09090b] border border-gray-700 rounded-xl max-w-4xl w-full flex overflow-hidden shadow-2xl relative">
-        
+    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl max-w-4xl w-full flex flex-col md:flex-row overflow-hidden shadow-2xl relative max-h-[90vh]">
         {/* Poster */}
-        <div className="w-1/3 bg-gray-900 relative hidden md:block">
+        <div className="w-full md:w-1/3 bg-slate-950 relative hidden md:block border-r border-slate-800">
           {card.posterPath ? (
-             <Image src={`https://image.tmdb.org/t/p/w500${card.posterPath}`} alt={card.title} fill className="object-cover" />
+            <Image
+              src={`https://image.tmdb.org/t/p/w500${card.posterPath}`}
+              alt={card.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-cover"
+            />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-500">Sin póster</div>
+            <div className="absolute inset-0 flex items-center justify-center text-slate-500">
+              Sin póster
+            </div>
           )}
         </div>
 
         {/* Controles de Edición */}
-        <div className="p-6 flex-1 flex flex-col max-h-[85vh] overflow-y-auto">
-          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
-          
-          <h2 className="text-3xl font-black text-blue-500 mb-1">Editar: {card.title}</h2>
-          <p className="text-gray-400 text-sm mb-6">{card.year} • RAREZA ACTUAL: {card.rarity}</p>
+        <div className="p-6 flex-1 flex flex-col overflow-y-auto">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center"
+          >
+            ✕
+          </button>
 
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Nueva Rareza</label>
-            <select 
-              value={rarity} 
-              onChange={(e) => setRarity(e.target.value)}
-              className="w-full bg-[#0f3a61] border border-gray-600 rounded p-3 text-white outline-none font-bold"
-            >
-              <option value="COMMON">⚪ Común</option>
-              <option value="UNCOMMON">🟢 Poco Común</option>
-              <option value="RARE">🔵 Rara</option>
-              <option value="EPIC">🟣 Épica</option>
-              <option value="LEGENDARY">🟡 Legendaria</option>
-            </select>
-          </div>
+          <span className="text-xs font-mono font-bold text-sky-400 uppercase tracking-widest">
+            Edición de Bóveda
+          </span>
+          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-wider mt-1">
+            {card.title}
+          </h2>
+          <p className="text-slate-400 text-xs mt-0.5 font-mono mb-4">
+            Año: {card.year} • TMDB ID: {card.tmdbId}
+          </p>
 
-          <div className="mb-6 flex-1">
-            <label className="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">
-              Categorías ({selectedCategories.length} seleccionadas)
+          {/* RAREZA OFICIAL */}
+          <div className="mb-4">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Cambiar Rareza:
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-[#121214] p-4 rounded border border-gray-800 h-64 overflow-y-auto">
-              {OFFICIAL_CATEGORIES.map((cat) => (
-                <label key={cat.key} className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-1 rounded transition-colors">
-                  <input 
-                    type="checkbox" 
-                    checked={selectedCategories.includes(cat.key)}
-                    onChange={() => toggleCategory(cat.key)}
-                    className="accent-blue-500 w-4 h-4"
-                  />
-                  <span className={`text-sm ${selectedCategories.includes(cat.key) ? 'text-white font-bold' : 'text-gray-400'}`}>
-                    {cat.label}
-                  </span>
-                </label>
-              ))}
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              {RARITIES.map((r) => {
+                const isSelected = rarity === r.key;
+                return (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => setRarity(r.key)}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
+                      isSelected
+                        ? 'border-amber-400 bg-amber-400 text-slate-950 shadow-md font-black'
+                        : `${r.color} hover:brightness-125`
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-auto pt-4 border-t border-gray-800">
-            <button onClick={onClose} className="px-6 py-2 text-gray-400 hover:text-white font-bold transition-colors">Cancelar</button>
-            <button onClick={handleSave} className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded shadow-lg transition-all">
-              GUARDAR CAMBIOS
+          {/* POWER-UP OPCIONAL */}
+          <div className="mb-4 bg-slate-950 p-3 rounded-2xl border border-slate-800">
+            <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
+              Habilidad / Power-Up:
+            </label>
+            <select
+              value={powerUpAction}
+              onChange={(e) => setPowerUpAction(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+            >
+              {POWER_UP_ACTIONS.map((p) => (
+                <option key={p.key} value={p.key}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* CATEGORÍAS */}
+          <div className="mb-4 flex-1">
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Categorías Oficiales ({selectedCategories.length} seleccionadas)
+              </label>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 bg-slate-950 p-3 rounded-2xl border border-slate-800 max-h-48 overflow-y-auto">
+              {OFFICIAL_CATEGORIES.map((cat) => {
+                const isChecked = selectedCategories.includes(cat.key);
+                return (
+                  <label
+                    key={cat.key}
+                    className={`flex items-center gap-1.5 p-1.5 rounded-xl cursor-pointer text-xs transition border ${
+                      isChecked
+                        ? 'bg-amber-400/15 text-amber-300 border-amber-400/50 font-bold'
+                        : 'bg-slate-900/60 text-slate-400 border-slate-800/80 hover:border-slate-700'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggleCategory(cat.key)}
+                      className="accent-amber-400 w-3.5 h-3.5"
+                    />
+                    <span className="truncate">
+                      {cat.icon} {cat.label}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Botones de Acción */}
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-800 mt-auto">
+            <button
+              onClick={onClose}
+              className="px-5 py-2.5 text-xs text-slate-400 hover:text-white font-bold rounded-xl bg-slate-800 hover:bg-slate-700 transition"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-6 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-sky-950/40 transition cursor-pointer"
+            >
+              💾 Guardar Cambios
             </button>
           </div>
         </div>

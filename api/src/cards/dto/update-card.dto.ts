@@ -1,5 +1,6 @@
-import { IsEnum, IsArray, IsString, IsOptional } from 'class-validator';
-import { Rarity } from '@prisma/client';
+// api/src/cards/dto/update-card.dto.ts
+import { IsEnum, IsArray, IsString, IsOptional, IsInt } from 'class-validator';
+import { Rarity, ActionType } from '@prisma/client';
 
 export class UpdateCardDto {
   @IsOptional()
@@ -10,4 +11,12 @@ export class UpdateCardDto {
   @IsArray()
   @IsString({ each: true })
   categories?: string[];
+
+  @IsOptional()
+  @IsEnum(ActionType)
+  powerUpAction?: ActionType;
+
+  @IsOptional()
+  @IsInt()
+  powerUpValue?: number;
 }

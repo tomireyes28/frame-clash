@@ -1,12 +1,6 @@
+// api/src/cards/dto/create-card.dto.ts
 import { IsInt, IsString, IsNotEmpty, IsEnum, IsArray, IsOptional } from 'class-validator';
-
-export enum Rarity {
-  COMMON = 'COMMON',
-  UNCOMMON = 'UNCOMMON',
-  RARE = 'RARE',
-  EPIC = 'EPIC',
-  LEGENDARY = 'LEGENDARY',
-}
+import { Rarity } from '@prisma/client';
 
 export class CreateCardDto {
   @IsInt()
@@ -17,11 +11,11 @@ export class CreateCardDto {
   @IsNotEmpty()
   title!: string;
 
-  @IsOptional() // Lo hacemos opcional por si TMDB no tiene póster
+  @IsOptional()
   @IsString()
   posterPath?: string;
 
-  @IsInt() // Cambiamos releaseDate por year (como lo manda el frontend)
+  @IsInt()
   @IsNotEmpty()
   year!: number;
 
@@ -29,9 +23,16 @@ export class CreateCardDto {
   @IsNotEmpty()
   rarity!: Rarity;
 
-  // 🔥 NUEVO: Validamos el array de categorías
   @IsArray()
-  @IsString({ each: true }) // Cada elemento del array debe ser un string
+  @IsString({ each: true })
   @IsNotEmpty()
-  categories!: string[]; 
+  categories!: string[];
+
+  @IsOptional()
+  @IsString()
+  powerUpAction?: string;
+
+  @IsOptional()
+  @IsInt()
+  powerUpValue?: number;
 }

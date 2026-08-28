@@ -1,7 +1,8 @@
+// api/src/cards/cards.service.ts
 import { Injectable, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCardDto } from './dto/create-card.dto';
-import { Prisma, Rarity } from '@prisma/client';
+import { Prisma, Rarity, ActionType } from '@prisma/client';
 import { UpdateCardDto } from './dto/update-card.dto';
 
 @Injectable()
@@ -25,34 +26,33 @@ export class CardsService {
       data: {
         tmdbId: data.tmdbId,
         title: data.title,
-        posterPath: data.posterPath || null, // Guardamos null si no hay póster
-        year: data.year, // Ya viene parseado como número desde el frontend
-        rarity: data.rarity as Rarity, 
-        
-        // 🔥 MAGIA DE PRISMA: Conectamos la carta con las categorías existentes
+        posterPath: data.posterPath || null,
+        year: data.year,
+        rarity: data.rarity as Rarity,
+        powerUpAction: data.powerUpAction ? (data.powerUpAction as ActionType) : null,
+        powerUpValue: data.powerUpValue || null,
         categories: {
           connect: data.categories.map((key) => ({ key })),
         },
       },
-      // Le decimos a Prisma que nos devuelva la carta con las categorías incluidas
       include: {
-        categories: true, 
-      }
+        categories: true,
+      },
     });
   }
 
   async findAll() {
-    // Al traer todas las cartas para las estadísticas, incluimos sus categorías
     return this.prisma.card.findMany({
       include: {
         categories: true,
-      }
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async updateCard(id: string, data: UpdateCardDto) {
     const updateData: Prisma.CardUpdateInput = {};
-    
+
     if (data.rarity) {
       updateData.rarity = data.rarity;
     }
@@ -63,12 +63,19 @@ export class CardsService {
       };
     }
 
-    // Actualizamos en la base de datos
+    if (data.powerUpAction !== undefined) {
+      updateData.powerUpAction = data.powerUpAction;
+    }
+
+    if (data.powerUpValue !== undefined) {
+      updateData.powerUpValue = data.powerUpValue;
+    }
+
     return this.prisma.card.update({
       where: { id },
-      data: updateData, // 👈 Ahora TypeScript sabe perfectamente que esto es seguro
+      data: updateData,
       include: {
-        categories: true, 
+        categories: true,
       },
     });
   }
