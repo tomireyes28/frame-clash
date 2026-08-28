@@ -135,6 +135,14 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
     }
   };
 
+  const handleCardInteraction = () => {
+    if (!isCurrentFlipped) {
+      handleFlipCurrentCard();
+    } else {
+      handleNextCard();
+    }
+  };
+
   const handleNextCard = () => {
     soundManager.playButtonClick();
     if (currentCardIndex + 1 < packResult.cards.length) {
@@ -147,7 +155,7 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 overflow-hidden select-none">
+    <div className="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-2xl flex flex-col items-center justify-between p-4 overflow-hidden select-none">
       {/* 🌟 LUZ AMBIENTAL DEL PROYECTOR */}
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -226,20 +234,20 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
       {/* FASE 3: MAZO APILADO 1 A 1 (CARD STACK REVEAL)           */}
       {/* ========================================================= */}
       {phase === 'STACK_REVEAL' && currentCard ? (
-        <div className="w-full max-w-sm h-full flex flex-col justify-between items-center py-2">
+        <div className="w-full max-w-sm h-full flex flex-col justify-between items-center py-3 z-10">
           {/* CABECERA: CONTADOR Y PROGRESO */}
-          <div className="w-full flex flex-col items-center gap-1.5">
+          <div className="w-full flex flex-col items-center gap-1.5 pt-1">
             <div className="flex justify-between items-center w-full px-2">
-              <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-wider bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
+              <span className="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider bg-slate-900 border border-slate-800 px-3 py-1 rounded-full shadow-md">
                 Carta {currentCardIndex + 1} de {packResult.cards.length}
               </span>
-              <span className={`text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full border shadow-md ${rarityTheme.badge}`}>
+              <span className={`text-[10px] font-black uppercase px-3 py-0.5 rounded-full border shadow-md ${rarityTheme.badge}`}>
                 {rarityTheme.name}
               </span>
             </div>
 
             {/* Barra de progreso de cartas */}
-            <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+            <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800 mt-1">
               <div
                 className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-300"
                 style={{ width: `${((currentCardIndex + (isCurrentFlipped ? 1 : 0)) / packResult.cards.length) * 100}%` }}
@@ -248,22 +256,22 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
           </div>
 
           {/* ESCENARIO DEL MAZO APILADO (CARD STACK) */}
-          <div className="relative w-64 aspect-[2/3] my-auto flex items-center justify-center">
+          <div className="relative w-52 sm:w-60 aspect-[2/3] my-auto flex items-center justify-center">
             {/* Sombras de cartas debajo en el mazo (efecto de profundidad) */}
             {currentCardIndex + 2 < packResult.cards.length ? (
-              <div className="absolute inset-0 rounded-2xl bg-slate-900 border-2 border-slate-800 opacity-40 scale-90 translate-y-4 rotate-3 pointer-events-none" />
+              <div className="absolute inset-0 rounded-2xl bg-slate-900 border-2 border-slate-800 opacity-40 scale-90 translate-y-3 rotate-3 pointer-events-none" />
             ) : null}
             {currentCardIndex + 1 < packResult.cards.length ? (
-              <div className="absolute inset-0 rounded-2xl bg-slate-900 border-2 border-slate-700 opacity-70 scale-95 translate-y-2 -rotate-2 pointer-events-none" />
+              <div className="absolute inset-0 rounded-2xl bg-slate-900 border-2 border-slate-700 opacity-70 scale-95 translate-y-1.5 -rotate-2 pointer-events-none" />
             ) : null}
 
             {/* CARTA ACTIVA */}
             <motion.div
               key={currentCard.id || currentCardIndex}
-              initial={{ scale: 0.8, y: 30, opacity: 0 }}
+              initial={{ scale: 0.85, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               transition={{ type: 'spring', bounce: 0.4 }}
-              onClick={handleFlipCurrentCard}
+              onClick={handleCardInteraction}
               className="w-full h-full cursor-pointer relative"
               style={{ perspective: 1000 }}
             >
@@ -329,23 +337,26 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
             </motion.div>
           </div>
 
-          {/* BOTÓN INFERIOR DE NAVEGACIÓN */}
-          <div className="w-full pt-2">
+          {/* BOTÓN INFERIOR DE NAVEGACIÓN Y CONTINUAR */}
+          <div className="w-full pb-2 flex flex-col items-center gap-1.5">
             {!isCurrentFlipped ? (
               <button
                 onClick={handleFlipCurrentCard}
-                className="w-full py-3 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer border border-yellow-200"
+                className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer border border-yellow-200"
               >
                 ✨ Voltear Carta
               </button>
             ) : (
               <button
                 onClick={handleNextCard}
-                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#065f46] active:translate-y-1 active:shadow-none transition cursor-pointer border border-emerald-300"
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#065f46] active:translate-y-1 active:shadow-none transition cursor-pointer border border-emerald-200 animate-bounce"
               >
-                {currentCardIndex + 1 < packResult.cards.length ? 'Siguiente Carta ➔' : 'Ver Resumen ➔'}
+                {currentCardIndex + 1 < packResult.cards.length ? 'Siguiente Carta ➔' : 'Ver Resumen Final ➔'}
               </button>
             )}
+            <span className="text-[10px] text-slate-400 font-mono">
+              {isCurrentFlipped ? '💡 Tocá la carta o el botón para continuar' : '💡 Tocá la carta para darla vuelta'}
+            </span>
           </div>
         </div>
       ) : null}
@@ -357,7 +368,7 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-sm h-full flex flex-col justify-between items-center py-2"
+          className="w-full max-w-sm h-full flex flex-col justify-between items-center py-3 z-10"
         >
           <div className="text-center pt-2">
             <span className="text-[9px] font-mono text-amber-400 font-bold uppercase tracking-widest bg-slate-900 border border-slate-800 px-3 py-0.5 rounded-full inline-block mb-1">
@@ -397,7 +408,7 @@ export default function PackOpeningModal({ packResult, packName, onClose }: Pack
               soundManager.playButtonClick();
               onClose();
             }}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer"
+            className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer border border-yellow-200"
           >
             ✅ Guardar en mi Álbum
           </button>
