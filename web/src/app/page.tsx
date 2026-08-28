@@ -5,11 +5,30 @@ import { useEffect, useState, Suspense } from 'react';
 import Cookies from 'js-cookie';
 import { AuthCatcher } from '@/components/auth/AuthCatcher';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { soundManager } from '@/utils/audio';
+import { inventoryService, InventoryCard } from '@/services/inventory.service';
+import { profileService, UserProfileData } from '@/services/profile.service';
+import GameCard, { CardData } from '@/components/game/GameCard';
+
+// Carta por defecto para el showcase en caso de no tener inventario
+const DEFAULT_HERO_CARD: CardData = {
+  id: 'demo-godfather',
+  tmdbId: 238,
+  title: 'El Padrino',
+  year: 1972,
+  posterPath: '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
+  rarity: 'LEGENDARY',
+  level: 1,
+  powerUpAction: 'ELIMINATE_50_50',
+  powerUpValue: 2,
+};
 
 export default function Home() {
   const [isLogged, setIsLogged] = useState(false);
+  const [activeTab, setActiveTab] = useState<'MULTIPLAYER' | 'CAMPAIGN'>('MULTIPLAYER');
+  const [heroCard, setHeroCard] = useState<CardData>(DEFAULT_HERO_CARD);
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,6 +36,35 @@ export default function Home() {
       const token = Cookies.get('frameclash_token');
       if (token) {
         setIsLogged(true);
+
+        // Cargar carta líder destacada del inventario
+        inventoryService
+          .getInventory()
+          .then((cards) => {
+            if (cards.length > 0) {
+              // Elegir la carta de mayor nivel o legendaria
+              const sorted = [...cards].sort((a, b) => (b.level || 1) - (a.level || 1));
+              const top = sorted[0];
+              setHeroCard({
+                id: top.id,
+                tmdbId: top.tmdbId,
+                title: top.title,
+                year: top.year,
+                posterPath: top.posterPath,
+                rarity: top.rarity,
+                level: top.level || 1,
+                powerUpAction: top.powerUpAction,
+                powerUpValue: top.powerUpValue,
+              });
+            }
+          })
+          .catch(() => {});
+
+        // Cargar perfil para nivel y stats
+        profileService
+          .getProfile()
+          .then((data) => setProfile(data))
+          .catch(() => {});
       }
     }, 0);
 
@@ -34,240 +82,299 @@ export default function Home() {
     router.push(url);
   };
 
+  const handleTabChange = (tab: 'MULTIPLAYER' | 'CAMPAIGN') => {
+    soundManager.playButtonClick();
+    setActiveTab(tab);
+  };
+
   return (
-    <div className="flex flex-col w-full p-3 md:p-4 gap-3.5 pb-8 relative overflow-hidden">
+    <div className="flex flex-col w-full p-3 gap-3.5 pb-6 font-sans relative">
       <Suspense fallback={null}>
         <AuthCatcher />
       </Suspense>
 
-      {/* 🌟 CINEMATIC BACKGROUND GLOW */}
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-80 h-80 bg-gradient-to-b from-amber-500/15 via-orange-600/10 to-transparent blur-3xl pointer-events-none" />
-
-      {/* HEADER LOGO */}
-      <div className="text-center pt-1 relative z-10">
+      {/* 🌟 LOGO & BRAND HEADER */}
+      <div className="text-center pt-1 relative">
         <motion.h1
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-3xl font-black bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 bg-clip-text text-transparent uppercase tracking-wider drop-shadow-xl"
+          className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 bg-clip-text text-transparent uppercase tracking-wider drop-shadow-md"
         >
           FRAME CLASH
         </motion.h1>
-        <p className="text-[10px] font-mono text-amber-300/80 font-bold uppercase tracking-widest mt-0.5">
+        <p className="text-[9px] font-mono text-amber-300/80 font-bold uppercase tracking-widest">
           🎬 Trivia de Cine & Cartas TCG
         </p>
       </div>
 
       {!isLogged ? (
-        <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl text-center flex flex-col gap-4 shadow-xl my-auto relative z-10">
-          <span className="text-4xl block animate-bounce">🎬</span>
-          <h2 className="text-lg font-black text-white">¡Bienvenido a la Arena!</h2>
-          <p className="text-xs text-slate-400">
-            Iniciá sesión para coleccionar cartas con fotogramas, equipar power-ups y competir en los rankings globales.
+        <div className="bg-slate-900/90 border-2 border-slate-800 p-6 rounded-3xl text-center flex flex-col gap-4 shadow-2xl my-auto">
+          <span className="text-5xl block animate-bounce">🎬</span>
+          <h2 className="text-lg font-black text-white uppercase tracking-wide">
+            ¡Bienvenido a la Arena!
+          </h2>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Iniciá sesión para coleccionar cartas con fotogramas reales, subir de nivel tu mazo y competir en los rankings mundiales.
           </p>
           <button
             onClick={handleLogin}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_5px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer"
+            className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_5px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer"
           >
             Iniciar Sesión con Google
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3.5 relative z-10">
+        <div className="flex flex-col gap-3">
           {/* ========================================================= */}
-          {/* 1. HERO BANNER: BATTLE ROYALE (10 JUGADORES)             */}
+          {/* 1. ESCENARIO CENTRAL: CARTA LÍDER DEL MAZO (3D SHOWCASE) */}
           {/* ========================================================= */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => handleNav('/play/battle-royale')}
-            className="relative rounded-3xl p-4.5 bg-gradient-to-r from-amber-950/90 via-orange-950/70 to-slate-900 border-2 border-amber-400 shadow-2xl shadow-amber-950/60 cursor-pointer overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 w-36 h-36 bg-amber-400/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-            <div className="flex justify-between items-start mb-2">
-              <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-md">
-                👑 MODO DESTACADO
-              </span>
-              <span className="text-xs font-mono font-black text-amber-300 bg-black/40 px-2 py-0.5 rounded-lg border border-amber-400/30">
-                10 Jugadores
-              </span>
+          <div className="relative rounded-3xl p-3.5 bg-gradient-to-b from-slate-900/90 via-slate-950 to-slate-950 border-2 border-amber-400/40 shadow-xl flex items-center justify-between overflow-hidden group">
+            {/* Resplandor de fondo del escenario */}
+            <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-32 h-32 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="flex flex-col justify-between z-10 max-w-[55%]">
+              <div>
+                <span className="text-[8px] font-mono font-bold text-amber-400 uppercase tracking-widest bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-full inline-block mb-1.5">
+                  ⭐ Tu Carta Líder
+                </span>
+                <h3 className="text-sm font-black text-white uppercase tracking-wide truncate">
+                  {heroCard.title}
+                </h3>
+                <span className="text-[10px] text-slate-400 block font-mono">
+                  Año {heroCard.year || 2024} • Nivel {heroCard.level || 1}
+                </span>
+              </div>
+
+              <div className="mt-2.5">
+                <button
+                  onClick={() => handleNav('/inventory')}
+                  className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 text-[9px] font-black uppercase rounded-lg transition cursor-pointer"
+                >
+                  Cambiar Mazo ➔
+                </button>
+              </div>
             </div>
 
-            <h3 className="text-lg font-black text-white uppercase tracking-wide group-hover:text-amber-300 transition">
-              Battle Royale
-            </h3>
-            <p className="text-[11px] text-slate-300 mt-0.5 leading-tight mb-3">
-              5 Rondas de supervivencia. Los 2 peores puntajes de cada ronda quedan eliminados.
-            </p>
+            {/* Carta 3D flotante */}
+            <motion.div
+              whileHover={{ scale: 1.05, rotate: 2 }}
+              onClick={() => handleNav('/inventory')}
+              className="w-24 aspect-[2/3] shrink-0 cursor-pointer shadow-[0_0_20px_rgba(251,191,36,0.4)] rounded-xl"
+            >
+              <GameCard card={heroCard} size="full" isFlippable={false} />
+            </motion.div>
+          </div>
 
-            <button className="w-full py-2.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_4px_0_#b45309] group-active:translate-y-1 group-active:shadow-none transition flex items-center justify-center gap-1.5">
+          {/* ========================================================= */}
+          {/* 2. BOTÓN GIGANTE ARCADE: ¡A LA BATALLA! (Battle Royale)  */}
+          {/* ========================================================= */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => handleNav('/play/battle-royale')}
+            className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl shadow-[0_5px_0_#b45309] active:translate-y-1 active:shadow-none transition flex items-center justify-between cursor-pointer border-2 border-yellow-200/60"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xl">⚔️</span>
+              <div className="text-left">
+                <span className="block leading-none">¡A LA BATALLA!</span>
+                <span className="text-[9px] text-slate-900/80 font-bold font-mono">
+                  BATTLE ROYALE (10 JUGADORES)
+                </span>
+              </div>
+            </div>
+            <span className="text-base font-black">➔</span>
+          </motion.button>
+
+          {/* ========================================================= */}
+          {/* 3. SELECTOR DE ARENAS / PESTAÑAS DINÁMICAS (TABS)         */}
+          {/* ========================================================= */}
+          <div className="flex bg-slate-900/80 p-1 rounded-2xl border border-slate-800">
+            <button
+              onClick={() => handleTabChange('MULTIPLAYER')}
+              className={`flex-1 py-1.5 text-[10px] font-black uppercase rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeTab === 'MULTIPLAYER'
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
               <span>⚔️</span>
-              <span>¡ENTRAR A LA ARENA!</span>
+              <span>Multijugador (PvP)</span>
             </button>
-          </motion.div>
 
-          {/* ========================================================= */}
-          {/* 2. GRID 2 COLUMNAS: MULTIJUGADOR 1V1                     */}
-          {/* ========================================================= */}
-          <div className="grid grid-cols-2 gap-2.5">
-            {/* COLISEO EN VIVO */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleNav('/play/pvp-live')}
-              className="p-3.5 rounded-2xl bg-gradient-to-b from-red-950/80 to-slate-900 border-2 border-red-500/60 shadow-lg cursor-pointer flex flex-col justify-between"
+            <button
+              onClick={() => handleTabChange('CAMPAIGN')}
+              className={`flex-1 py-1.5 text-[10px] font-black uppercase rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                activeTab === 'CAMPAIGN'
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
             >
-              <div>
-                <span className="text-[9px] font-black text-red-400 uppercase tracking-widest block mb-1">
-                  ⚡ EN DIRECTO
-                </span>
-                <h4 className="text-sm font-black text-white leading-tight">
-                  Coliseo 1v1
-                </h4>
-                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
-                  Duelo sincrónico en tiempo real.
-                </p>
-              </div>
-              <span className="text-[10px] font-bold text-red-400 mt-3 flex items-center gap-1">
-                Batirse a Duelo ➔
-              </span>
-            </motion.div>
-
-            {/* DUELOS ASÍNCRONOS ELO */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleNav('/play/pvp-async')}
-              className="p-3.5 rounded-2xl bg-gradient-to-b from-rose-950/80 to-slate-900 border-2 border-rose-500/60 shadow-lg cursor-pointer flex flex-col justify-between"
-            >
-              <div>
-                <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-1">
-                  🏆 RANKING ELO
-                </span>
-                <h4 className="text-sm font-black text-white leading-tight">
-                  Liga de Duelos
-                </h4>
-                <p className="text-[10px] text-slate-400 mt-1 leading-snug">
-                  Desafíos por turnos y puntos de ranking.
-                </p>
-              </div>
-              <span className="text-[10px] font-bold text-rose-400 mt-3 flex items-center gap-1">
-                Ver Desafíos ➔
-              </span>
-            </motion.div>
+              <span>🏆</span>
+              <span>Campañas & Solo</span>
+            </button>
           </div>
 
           {/* ========================================================= */}
-          {/* 3. MODOS SINGLE PLAYER (DRAFT, DOMINIO, ROGUELIKE)       */}
+          {/* 4. CONTENIDO DE MODOS POR PESTAÑA                         */}
           {/* ========================================================= */}
-          <div className="flex flex-col gap-2">
-            {/* MODO DRAFT */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleNav('/play/draft')}
-              className="p-3 rounded-2xl bg-gradient-to-r from-purple-950/70 to-slate-900 border border-purple-500/50 shadow-md cursor-pointer flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🎲</span>
-                <div>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                    Modo Draft (3 Rondas)
-                  </h4>
-                  <p className="text-[10px] text-slate-400">
-                    5 Power-ups con recarga del 100% cada ronda.
-                  </p>
+          <AnimatePresence mode="wait">
+            {activeTab === 'MULTIPLAYER' ? (
+              <motion.div
+                key="tab-multiplayer"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="grid grid-cols-2 gap-2"
+              >
+                {/* COLISEO 1V1 EN VIVO */}
+                <div
+                  onClick={() => handleNav('/play/pvp-live')}
+                  className="p-3 rounded-2xl bg-gradient-to-b from-red-950/80 to-slate-900 border-2 border-red-500/60 shadow-lg cursor-pointer flex flex-col justify-between hover:border-red-400 transition"
+                >
+                  <div>
+                    <span className="text-[8px] font-black text-red-400 uppercase tracking-widest block mb-0.5">
+                      ⚡ DIRECTO
+                    </span>
+                    <h4 className="text-xs font-black text-white">Coliseo 1v1</h4>
+                    <p className="text-[9px] text-slate-400 mt-0.5 leading-tight">
+                      Duelo simultáneo en tiempo real.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-bold text-red-400 mt-2">
+                    Luchar ➔
+                  </span>
                 </div>
-              </div>
-              <span className="text-xs text-purple-400 font-bold">➔</span>
-            </motion.div>
 
-            {/* MODO DOMINIO */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleNav('/play/domination')}
-              className="p-3 rounded-2xl bg-gradient-to-r from-amber-950/70 to-slate-900 border border-amber-500/50 shadow-md cursor-pointer flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">👑</span>
-                <div>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                    Modo Dominio
-                  </h4>
-                  <p className="text-[10px] text-slate-400">
-                    31 Campañas de 10 Fases con estrellas ⭐.
-                  </p>
+                {/* LIGA DE DUELOS ELO */}
+                <div
+                  onClick={() => handleNav('/play/pvp-async')}
+                  className="p-3 rounded-2xl bg-gradient-to-b from-rose-950/80 to-slate-900 border-2 border-rose-500/60 shadow-lg cursor-pointer flex flex-col justify-between hover:border-rose-400 transition"
+                >
+                  <div>
+                    <span className="text-[8px] font-black text-rose-400 uppercase tracking-widest block mb-0.5">
+                      🏆 RANKING ELO
+                    </span>
+                    <h4 className="text-xs font-black text-white">Liga ELO</h4>
+                    <p className="text-[9px] text-slate-400 mt-0.5 leading-tight">
+                      Desafíos asíncronos y ranking.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-bold text-rose-400 mt-2">
+                    Desafiar ➔
+                  </span>
                 </div>
-              </div>
-              <span className="text-xs text-amber-400 font-bold">➔</span>
-            </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="tab-campaign"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="grid grid-cols-2 gap-2"
+              >
+                {/* MODO DOMINIO */}
+                <div
+                  onClick={() => handleNav('/play/domination')}
+                  className="p-2.5 rounded-2xl bg-gradient-to-b from-amber-950/70 to-slate-900 border border-amber-500/50 shadow-md cursor-pointer hover:border-amber-400 transition flex flex-col justify-between"
+                >
+                  <div>
+                    <span className="text-lg block mb-0.5">👑</span>
+                    <h4 className="text-xs font-black text-white">Dominio</h4>
+                    <p className="text-[9px] text-slate-400 leading-tight">
+                      31 Campañas con estrellas ⭐
+                    </p>
+                  </div>
+                  <span className="text-[9px] text-amber-400 font-bold mt-1">
+                    Jugar ➔
+                  </span>
+                </div>
 
-            {/* MODO ROGUELIKE */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleNav('/play/roguelite')}
-              className="p-3 rounded-2xl bg-gradient-to-r from-orange-950/70 to-slate-900 border border-orange-500/50 shadow-md cursor-pointer flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🔥</span>
-                <div>
-                  <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                    Roguelike Infinito
-                  </h4>
-                  <p className="text-[10px] text-slate-400">
-                    Rondas crecientes con cofre acumulativo.
-                  </p>
+                {/* ROGUELIKE INFINITO */}
+                <div
+                  onClick={() => handleNav('/play/roguelite')}
+                  className="p-2.5 rounded-2xl bg-gradient-to-b from-orange-950/70 to-slate-900 border border-orange-500/50 shadow-md cursor-pointer hover:border-orange-400 transition flex flex-col justify-between"
+                >
+                  <div>
+                    <span className="text-lg block mb-0.5">🔥</span>
+                    <h4 className="text-xs font-black text-white">Roguelike</h4>
+                    <p className="text-[9px] text-slate-400 leading-tight">
+                      Rondas crecientes & cofre
+                    </p>
+                  </div>
+                  <span className="text-[9px] text-orange-400 font-bold mt-1">
+                    Supervivencia ➔
+                  </span>
                 </div>
-              </div>
-              <span className="text-xs text-orange-400 font-bold">➔</span>
-            </motion.div>
 
-            {/* TRIVIA CLÁSICA */}
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleNav('/play')}
-              className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-md cursor-pointer flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🎮</span>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-200">
-                    Trivia Clásica Rápida
-                  </h4>
-                  <p className="text-[10px] text-slate-500">
-                    Partida de 10 preguntas directa por categorías.
-                  </p>
+                {/* MODO DRAFT */}
+                <div
+                  onClick={() => handleNav('/play/draft')}
+                  className="p-2.5 rounded-2xl bg-gradient-to-b from-purple-950/70 to-slate-900 border border-purple-500/50 shadow-md cursor-pointer hover:border-purple-400 transition flex flex-col justify-between"
+                >
+                  <div>
+                    <span className="text-lg block mb-0.5">🎲</span>
+                    <h4 className="text-xs font-black text-white">Modo Draft</h4>
+                    <p className="text-[9px] text-slate-400 leading-tight">
+                      3 Rondas con recarga
+                    </p>
+                  </div>
+                  <span className="text-[9px] text-purple-400 font-bold mt-1">
+                    Elegir ➔
+                  </span>
                 </div>
-              </div>
-              <span className="text-xs text-slate-400 font-bold">➔</span>
-            </motion.div>
-          </div>
+
+                {/* TRIVIA RÁPIDA */}
+                <div
+                  onClick={() => handleNav('/play')}
+                  className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-md cursor-pointer hover:border-slate-600 transition flex flex-col justify-between"
+                >
+                  <div>
+                    <span className="text-lg block mb-0.5">🎮</span>
+                    <h4 className="text-xs font-bold text-slate-200">Trivia Directa</h4>
+                    <p className="text-[9px] text-slate-500 leading-tight">
+                      10 preguntas clásicas
+                    </p>
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-bold mt-1">
+                    Rápida ➔
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ========================================================= */}
-          {/* 4. ACCESOS RÁPIDOS A SETS Y ÁLBUM                        */}
+          {/* 5. ACCESOS RÁPIDOS: SETS Y ÁLBUM                         */}
           {/* ========================================================= */}
           <div className="grid grid-cols-2 gap-2 mt-0.5">
             <button
               onClick={() => handleNav('/collections')}
-              className="p-2.5 bg-slate-900 border border-slate-800 hover:border-amber-400 rounded-xl text-left transition flex items-center gap-2 cursor-pointer shadow-md"
+              className="p-2.5 bg-slate-900 border border-slate-800 hover:border-amber-400/60 rounded-2xl text-left transition flex items-center gap-2 cursor-pointer shadow-md"
             >
               <span className="text-lg">✨</span>
-              <div>
-                <span className="text-[10px] font-bold text-white block">Sets de Películas</span>
-                <span className="text-[8px] text-slate-400">Colecciones temáticas</span>
+              <div className="truncate">
+                <span className="text-[10px] font-bold text-white block truncate">
+                  Sets de Películas
+                </span>
+                <span className="text-[8px] text-slate-400 block font-mono">
+                  Colecciones temáticas
+                </span>
               </div>
             </button>
 
             <button
               onClick={() => handleNav('/inventory')}
-              className="p-2.5 bg-slate-900 border border-slate-800 hover:border-amber-400 rounded-xl text-left transition flex items-center gap-2 cursor-pointer shadow-md"
+              className="p-2.5 bg-slate-900 border border-slate-800 hover:border-amber-400/60 rounded-2xl text-left transition flex items-center gap-2 cursor-pointer shadow-md"
             >
               <span className="text-lg">🃏</span>
-              <div>
-                <span className="text-[10px] font-bold text-white block">Álbum de Cartas</span>
-                <span className="text-[8px] text-slate-400">Ver inventario 3D</span>
+              <div className="truncate">
+                <span className="text-[10px] font-bold text-white block truncate">
+                  Álbum de Cartas
+                </span>
+                <span className="text-[8px] text-slate-400 block font-mono">
+                  Ver inventario 3D
+                </span>
               </div>
             </button>
           </div>
