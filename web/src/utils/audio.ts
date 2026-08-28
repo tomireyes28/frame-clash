@@ -89,6 +89,10 @@ class SoundManager {
     osc.stop(now + 0.38);
   }
 
+  playWrong() {
+    this.playIncorrect();
+  }
+
   /**
    * Sonido de tick del reloj (cuando quedan menos de 3 segundos)
    */

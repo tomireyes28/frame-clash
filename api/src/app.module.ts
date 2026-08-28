@@ -15,9 +15,26 @@ import { ProfileModule } from './profile/profile.module';
 import { MissionModule } from './mission/mission.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { CollectionsModule } from './collections/collections.module';
+import { RogueliteModule } from './roguelite/roguelite.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, UsersModule, TmdbModule, CardsModule, QuestionsModule, GameModule, ShopModule, PackModule, InventoryModule, ProfileModule, MissionModule, LeaderboardModule, CollectionsModule],
+  imports: [
+    AuthModule,
+    PrismaModule,
+    UsersModule,
+    TmdbModule,
+    CardsModule,
+    QuestionsModule,
+    GameModule,
+    ShopModule,
+    PackModule,
+    InventoryModule,
+    ProfileModule,
+    MissionModule,
+    LeaderboardModule,
+    CollectionsModule,
+    RogueliteModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

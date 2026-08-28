@@ -37,34 +37,46 @@ export default function Home() {
         <AuthCatcher />
       </Suspense>
 
-      <div className="text-center max-w-lg">
+      <div className="text-center max-w-md w-full">
         <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent mb-2 tracking-wider drop-shadow-2xl">
           FRAME CLASH
         </h1>
-        <p className="text-lg md:text-xl mb-8 text-slate-400 font-light">
+        <p className="text-sm md:text-base mb-8 text-slate-400 font-light">
           La trivia definitiva de cine & cartas coleccionables
         </p>
 
         {isLogged ? (
           <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col gap-4 shadow-2xl">
-            <p className="text-emerald-400 font-bold">✅ Sesión iniciada y sincronizada</p>
-            <div className="flex flex-col gap-2">
+            <p className="text-emerald-400 font-bold text-xs">✅ Sesión iniciada y sincronizada</p>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => router.push('/play/roguelite')}
+                className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-orange-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
+              >
+                🔥 Modo Roguelike (Infinito)
+              </button>
               <button
                 onClick={() => router.push('/play')}
-                className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950/40 transition-all hover:scale-102"
+                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
               >
-                🎮 Jugar Trivia Clásica
+                🎮 Trivia Clásica (31 Categorías)
               </button>
               <button
                 onClick={() => router.push('/shop')}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-950/40 transition-all hover:scale-102"
+                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
               >
-                🛒 Tienda de Sobres
+                🛒 Tienda de Sobres (5 Tiers)
+              </button>
+              <button
+                onClick={() => router.push('/inventory')}
+                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
+              >
+                🃏 Álbum de Colección
               </button>
             </div>
             <button
               onClick={handleLogout}
-              className="text-xs text-slate-400 underline hover:text-white mt-2"
+              className="text-xs text-slate-400 underline hover:text-white mt-1"
             >
               Cerrar sesión
             </button>
@@ -72,7 +84,7 @@ export default function Home() {
         ) : (
           <button
             onClick={handleLogin}
-            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg rounded-2xl shadow-xl shadow-orange-950/50 hover:scale-105 transition-all"
+            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg rounded-2xl shadow-xl shadow-orange-950/50 hover:scale-105 transition-all cursor-pointer"
           >
             Iniciar sesión con Google
           </button>
