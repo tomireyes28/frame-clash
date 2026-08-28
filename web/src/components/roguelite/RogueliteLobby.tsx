@@ -46,84 +46,76 @@ export default function RogueliteLobby({ onStartRun, isLoading }: RogueliteLobby
 
   if (loadingData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-        <p className="text-slate-400 font-mono text-sm">Cargando Coliseo Roguelike...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p className="text-slate-400 font-mono text-xs">Cargando Roguelike...</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 py-4">
-      {/* TÍTULO Y DESCRIPCIÓN */}
+    <div className="w-full flex flex-col items-center gap-3.5 py-1 px-2 pb-6">
+      {/* HEADER */}
       <div className="text-center">
-        <h1 className="text-4xl md:text-6xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent uppercase tracking-wider mb-2">
+        <span className="bg-orange-950/80 text-orange-400 border border-orange-500/40 text-[10px] font-mono font-bold px-3 py-0.5 rounded-full uppercase tracking-wider inline-block mb-1">
+          🔥 Modo Supervivencia Infinita
+        </span>
+        <h1 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent uppercase tracking-wider">
           Modo Roguelike
         </h1>
-        <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-          Tandas infinitas de trivia con <span className="text-amber-400 font-bold">puntaje mínimo creciente</span>.
-          Elegí tu camino entre 3 categorías por ronda y acumulá monedas, experiencia y sobres legendarios.
+        <p className="text-[11px] text-slate-400 mt-0.5">
+          Tandas infinitas con <strong className="text-amber-400">puntaje mínimo creciente</strong>.
         </p>
       </div>
 
-      {/* ESTADÍSTICAS HISTÓRICAS */}
-      <div className="w-full grid grid-cols-3 gap-3 md:gap-4 bg-slate-900/80 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 shadow-xl text-center">
+      {/* ESTADÍSTICAS MÓVILES COMPACTAS */}
+      <div className="w-full grid grid-cols-3 gap-1.5 bg-slate-900/90 border border-slate-800 p-2.5 rounded-2xl text-center shadow-lg">
         <div className="flex flex-col items-center">
-          <span className="text-2xl md:text-3xl mb-1">🏆</span>
-          <span className="text-xl md:text-3xl font-black text-amber-400 font-mono">
-            Ronda {progress?.bestWave || 0}
-          </span>
-          <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold mt-0.5">
-            Récord de Ronda
+          <span className="text-[9px] text-slate-400 uppercase font-mono">Récord</span>
+          <span className="text-sm font-black text-amber-400 font-mono">
+            Onda {progress?.bestWave || 0}
           </span>
         </div>
 
         <div className="flex flex-col items-center border-x border-slate-800">
-          <span className="text-2xl md:text-3xl mb-1">🔥</span>
-          <span className="text-xl md:text-3xl font-black text-emerald-400 font-mono">
+          <span className="text-[9px] text-slate-400 uppercase font-mono">Mejor Score</span>
+          <span className="text-sm font-black text-emerald-400 font-mono">
             {(progress?.bestScore || 0).toLocaleString('es-AR')}
-          </span>
-          <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold mt-0.5">
-            Mejor Puntaje
           </span>
         </div>
 
         <div className="flex flex-col items-center">
-          <span className="text-2xl md:text-3xl mb-1">⚔️</span>
-          <span className="text-xl md:text-3xl font-black text-sky-400 font-mono">
+          <span className="text-[9px] text-slate-400 uppercase font-mono">Corridas</span>
+          <span className="text-sm font-black text-sky-400 font-mono">
             {progress?.totalRuns || 0}
-          </span>
-          <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-semibold mt-0.5">
-            Corridas Jugadas
           </span>
         </div>
       </div>
 
-      {/* SELECCIÓN DE POWER-UPS INICIALES */}
-      <div className="w-full bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
-        <div className="flex justify-between items-center mb-4">
+      {/* VITRINA DE POWER-UPS MÓVIL */}
+      <div className="w-full bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-md">
+        <div className="flex justify-between items-center mb-2">
           <div>
-            <h3 className="text-base md:text-lg font-bold text-white flex items-center gap-2">
-              ⚡ Seleccioná tus Power-Ups de Inicio
+            <h3 className="text-xs font-black text-white flex items-center gap-1.5">
+              <span>⚡</span>
+              <span>Power-Ups ({selectedCardIds.length}/3)</span>
             </h3>
-            <p className="text-xs text-slate-400">
-              Elegí hasta 3 cartas con power-up de tu colección ({selectedCardIds.length}/3 equipadas)
-            </p>
+            <span className="text-[9px] text-slate-400 block">Tocá hasta 3 cartas</span>
           </div>
           <Link
             href="/inventory"
-            className="text-xs text-amber-400 hover:text-amber-300 underline font-semibold"
+            className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold underline"
           >
-            Ver Álbum Completo
+            Ver Álbum ➔
           </Link>
         </div>
 
         {inventory.length === 0 ? (
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-6 text-center text-slate-400 text-xs">
+          <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 text-center text-slate-400 text-xs">
             No tenés cartas en tu colección. ¡Podés jugar sin power-ups o comprar sobres en la tienda!
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-56 overflow-y-auto pr-1">
+          <div className="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto pr-1">
             {inventory.map((card) => {
               const isSelected = selectedCardIds.includes(card.id);
               const cardData: CardData = {
@@ -142,15 +134,15 @@ export default function RogueliteLobby({ onStartRun, isLoading }: RogueliteLobby
                 <div
                   key={card.id}
                   onClick={() => toggleCardSelection(card.id)}
-                  className={`relative cursor-pointer rounded-xl p-1 transition-all ${
+                  className={`relative cursor-pointer rounded-xl p-0.5 transition-all ${
                     isSelected
-                      ? 'ring-2 ring-amber-400 bg-amber-500/10 scale-102'
-                      : 'opacity-70 hover:opacity-100 hover:bg-slate-800/60'
+                      ? 'ring-2 ring-amber-400 bg-amber-500/20 scale-102 shadow-md shadow-amber-950/40'
+                      : 'opacity-65 hover:opacity-100 hover:bg-slate-800/60'
                   }`}
                 >
                   <GameCard card={cardData} size="full" isFlippable={false} />
                   {isSelected && (
-                    <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shadow-md z-30">
+                    <div className="absolute top-1 right-1 bg-amber-400 text-slate-950 rounded-full w-4 h-4 flex items-center justify-center font-black text-[9px] shadow-md z-30">
                       ✓
                     </div>
                   )}
@@ -161,15 +153,15 @@ export default function RogueliteLobby({ onStartRun, isLoading }: RogueliteLobby
         )}
       </div>
 
-      {/* BOTÓN DE COMIENZO DE CORRIDA */}
+      {/* BOTÓN 3D "JUICY" */}
       <motion.button
         whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileTap={{ scale: 0.96 }}
         onClick={() => onStartRun(selectedCardIds)}
         disabled={isLoading}
-        className="w-full max-w-md py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-xl rounded-2xl shadow-2xl shadow-orange-950/60 transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50"
+        className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl shadow-[0_5px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer disabled:opacity-50 mt-1"
       >
-        {isLoading ? 'Iniciando Corrida...' : '🔥 ¡Comenzar Corrida Infinita!'}
+        {isLoading ? 'Iniciando Corrida...' : '🔥 ¡COMENZAR CORRIDA INFINITA!'}
       </motion.button>
     </div>
   );

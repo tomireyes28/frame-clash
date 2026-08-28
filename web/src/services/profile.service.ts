@@ -26,6 +26,8 @@ export interface UserProfileData {
     coins: number;
     stardust: number;
     xp: number;
+    eloRating?: number;
+    rankTier?: string;
     createdAt: string;
     level: number;
     currentLevelProgress: number;

@@ -33,6 +33,8 @@ export class ProfileService {
         coins: true,
         stardust: true,
         xp: true,
+        eloRating: true,
+        rankTier: true,
         createdAt: true,
       },
     });
