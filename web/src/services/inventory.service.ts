@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie'; // 👈 Importamos js-cookie
+import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -13,14 +13,13 @@ export interface InventoryCard {
   quantity: number;
   level: number;
   
-  // Datos de la película (aplanados o dentro de un objeto 'card', según tu backend)
+  // Datos de la película
   tmdbId: number;
   title: string;
   year: number;
   posterPath: string | null;
   rarity: string;
   
-  // 🔥 Acá sumamos las categorías y los poderes para que TypeScript no llore
   categories?: InventoryCategory[];
   powerUpAction?: string;
   powerUpValue?: number;
@@ -34,19 +33,16 @@ export interface UpgradeResponse {
   newBalance: number;
 }
 
-// 🛠️ Nuestro helper para inyectar el token en cada petición
 const getAuthHeaders = () => {
   const token = Cookies.get('frameclash_token');
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 };
 
 export const inventoryService = {
-  // 🧹 1. Chau userId
   getInventory: async (): Promise<InventoryCard[]> => {
-    // 🧹 2. Chau ?userId= de la URL y agregamos headers
     const response = await fetch(`${API_URL}/inventory`, {
       headers: getAuthHeaders(),
     });
@@ -56,16 +52,15 @@ export const inventoryService = {
     }
     
     const json = await response.json();
-    return json.data;
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    return [];
   },
 
-  // 🧹 3. Chau userId de los parámetros
   upgradeCard: async (cardId: string): Promise<UpgradeResponse> => {
-    const response = await fetch(`${API_URL}/inventory/upgrade`, {
+    const response = await fetch(`${API_URL}/inventory/${cardId}/upgrade`, {
       method: 'POST',
-      headers: getAuthHeaders(), // 👈 4. Inyectamos el token
-      // 🧹 5. En el body SOLO mandamos la carta. El backend ya sabe quién somos.
-      body: JSON.stringify({ cardId }),
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -74,5 +69,5 @@ export const inventoryService = {
     }
 
     return response.json();
-  }
+  },
 };

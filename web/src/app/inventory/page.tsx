@@ -23,13 +23,15 @@ export default function InventoryPage() {
   const [selectedRarity, setSelectedRarity] = useState<string>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCard, setSelectedCard] = useState<InventoryCard | null>(null);
 
   const loadInventory = async () => {
     try {
       const data = await inventoryService.getInventory();
-      setCards(data);
+      setCards(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
+      setCards([]);
     } finally {
       setIsLoading(false);
     }
@@ -39,9 +41,10 @@ export default function InventoryPage() {
     loadInventory();
   }, []);
 
-  // Filtrado reactivo en memoria
+  // Filtrado reactivo en memoria con salvaguarda
   const filteredCards = useMemo(() => {
-    return cards.filter((card) => {
+    const cardList = Array.isArray(cards) ? cards : [];
+    return cardList.filter((card) => {
       // 1. Filtro de rareza
       if (selectedRarity !== 'ALL' && card.rarity !== selectedRarity) {
         return false;
@@ -62,8 +65,9 @@ export default function InventoryPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p className="text-slate-400 font-mono text-sm">Cargando tu Álbum de Cartas...</p>
       </div>
     );
   }
@@ -89,60 +93,28 @@ export default function InventoryPage() {
             🛒 Comprar Sobres
           </Link>
           <Link
-            href="/play"
+            href="/collections"
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm rounded-xl border border-slate-700 transition"
           >
-            🎮 Ir al Juego
+            ✨ Sets Temáticos
           </Link>
         </div>
       </div>
 
       {/* FILTROS Y BÚSQUEDA */}
-      <div className="max-w-7xl mx-auto mb-8 flex flex-col gap-4">
-        {/* Barra de Búsqueda y Selector de Categoría */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder="Buscar por título de película..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/60 transition"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400/60 transition cursor-pointer"
-          >
-            <option value="ALL">Todas las Categorías ({OFFICIAL_CATEGORIES.length})</option>
-            {OFFICIAL_CATEGORIES.map((cat) => (
-              <option key={cat.key} value={cat.key}>
-                {cat.icon} {cat.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Pestañas de las 5 Rarezas Oficiales */}
-        <div className="flex flex-wrap gap-2 pt-1">
+      <div className="max-w-7xl mx-auto flex flex-col gap-4 mb-8 bg-slate-900/80 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 shadow-xl">
+        {/* Pestañas de Rarezas */}
+        <div className="flex flex-wrap gap-2">
           {RARITY_TABS.map((tab) => {
             const isSelected = selectedRarity === tab.key;
             return (
               <button
                 key={tab.key}
                 onClick={() => setSelectedRarity(tab.key)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${tab.badge} ${
-                  isSelected ? 'ring-2 ring-amber-400 shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                className={`px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                  isSelected
+                    ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-md shadow-amber-400/30'
+                    : `${tab.badge} hover:brightness-125`
                 }`}
               >
                 {tab.label}
@@ -150,71 +122,133 @@ export default function InventoryPage() {
             );
           })}
         </div>
+
+        {/* Buscador y Selector de Categorías Oficiales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="Buscar por título de película..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+          />
+
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400 transition cursor-pointer"
+          >
+            <option value="ALL">Todas las Categorías Oficiales (31)</option>
+            {OFFICIAL_CATEGORIES.map((cat) => (
+              <option key={cat.key} value={cat.key}>
+                {cat.icon} {cat.label} ({cat.type === 'genre' ? 'Género' : cat.type === 'decade' ? 'Década' : 'Temática'})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* GRILLA DE CARTAS */}
       <div className="max-w-7xl mx-auto">
         {filteredCards.length === 0 ? (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-12 text-center text-slate-400">
-            <p className="text-4xl mb-2">🃏</p>
-            <p className="text-lg font-bold text-slate-300">No se encontraron cartas con esos filtros.</p>
-            <p className="text-xs text-slate-500 mt-1">¡Abrí más sobres en la tienda para expandir tu colección!</p>
+          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-12 text-center text-slate-400">
+            <span className="text-5xl block mb-3">🃏</span>
+            <h3 className="text-lg font-bold text-slate-300">No se encontraron cartas</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Abrí sobres en la tienda o ajustá los filtros para ver tus cartas.
+            </p>
           </div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
-          >
-            <AnimatePresence>
-              {filteredCards.map((card) => {
-                const gameCardData: CardData = {
-                  id: card.id,
-                  tmdbId: card.tmdbId || 0,
-                  title: card.title,
-                  year: card.year || 2024,
-                  posterPath: card.posterPath,
-                  rarity: card.rarity || 'COMMON',
-                  level: card.level || 1,
-                  powerUpAction: card.powerUpAction,
-                  powerUpValue: card.powerUpValue,
-                  categories: card.categories || [],
-                };
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {filteredCards.map((item) => {
+              const cardData: CardData = {
+                id: item.cardId || item.id,
+                tmdbId: item.tmdbId,
+                title: item.title,
+                year: item.year,
+                posterPath: item.posterPath,
+                rarity: item.rarity,
+                powerUpAction: item.powerUpAction,
+                powerUpValue: item.powerUpValue,
+              };
 
-                return (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    key={card.id}
-                    className="flex flex-col items-center bg-slate-900/80 backdrop-blur-sm p-2.5 rounded-2xl border border-slate-800/80 hover:border-slate-700 shadow-lg transition-colors"
+              return (
+                <div key={item.id} className="flex flex-col gap-2">
+                  <div
+                    onClick={() => setSelectedCard(item)}
+                    className="w-full aspect-[2/3] cursor-pointer hover:scale-102 transition-transform"
                   >
-                    <div className="relative w-full aspect-[2/3] mb-2">
-                      {/* Badge de Nivel */}
-                      <div className="absolute -top-2 -right-2 z-30 bg-slate-950 px-2 py-0.5 text-[10px] font-black rounded-full border border-amber-400 text-amber-300 shadow-lg">
-                        Lvl {card.level || 1}
-                      </div>
+                    <GameCard card={cardData} size="full" isFlippable={true} />
+                  </div>
 
-                      {/* Badge de Copias */}
-                      {card.quantity > 1 && (
-                        <div className="absolute -top-2 -left-2 z-30 bg-sky-600 px-2 py-0.5 text-[10px] font-black rounded-full text-white shadow-lg border border-sky-400">
-                          x{card.quantity}
-                        </div>
-                      )}
-
-                      <GameCard
-                        card={gameCardData}
-                        size="full"
-                        isFlippable={true}
-                      />
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
+                  {/* Badges de Copias y Nivel */}
+                  <div className="flex justify-between items-center bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+                    <span className="text-amber-400 font-bold font-mono">
+                      NVL {item.level || 1}
+                    </span>
+                    <span className="text-slate-400 font-medium">
+                      x{item.quantity || 1} {item.quantity > 1 ? 'copias' : 'copia'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
+
+      {/* MODAL DE DETALLE DE CARTA */}
+      <AnimatePresence>
+        {selectedCard && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center gap-4 relative"
+            >
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white font-bold"
+              >
+                ✕
+              </button>
+
+              <div className="w-56 aspect-[2/3] my-2">
+                <GameCard
+                  card={{
+                    id: selectedCard.cardId || selectedCard.id,
+                    tmdbId: selectedCard.tmdbId,
+                    title: selectedCard.title,
+                    year: selectedCard.year,
+                    posterPath: selectedCard.posterPath,
+                    rarity: selectedCard.rarity,
+                    powerUpAction: selectedCard.powerUpAction,
+                    powerUpValue: selectedCard.powerUpValue,
+                  }}
+                  size="full"
+                  isFlippable={true}
+                />
+              </div>
+
+              <div className="w-full text-center">
+                <h3 className="text-xl font-black text-white">{selectedCard.title}</h3>
+                <p className="text-xs text-slate-400 mt-1">Año: {selectedCard.year}</p>
+                <div className="mt-3 flex justify-around bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                  <div>
+                    <span className="text-slate-400 block">Nivel</span>
+                    <span className="text-amber-400 font-bold">{selectedCard.level || 1}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Cantidad</span>
+                    <span className="text-white font-bold">{selectedCard.quantity || 1}</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
