@@ -3,13 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Dices, Crown, Flame, Play, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
+import { Dices, Crown, Flame, Play, Sparkles, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Draft', href: '/play/draft', icon: Dices },
   { name: 'Dominio', href: '/play/domination', icon: Crown },
   { name: 'Roguelike', href: '/play/roguelite', icon: Flame },
   { name: 'Trivia', href: '/play', icon: Play },
+  { name: 'Sets', href: '/collections', icon: Sparkles },
   { name: 'Álbum', href: '/inventory', icon: Layers },
   { name: 'Tienda', href: '/shop', icon: ShoppingBag },
   { name: 'Misiones', href: '/missions', icon: Target },
@@ -41,8 +42,8 @@ export default function Navigation() {
                   isActive ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[7.5px] tracking-wider mt-0.5">{item.name}</span>
+                <Icon size={15} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[7px] tracking-wider mt-0.5">{item.name}</span>
               </Link>
             );
           })}
@@ -51,7 +52,7 @@ export default function Navigation() {
 
       {/* 💻 DESKTOP SIDEBAR */}
       <nav className="hidden md:flex flex-col w-60 fixed top-0 left-0 h-screen bg-slate-950 border-r border-slate-800/80 z-50 p-5">
-        <div className="mb-6 pl-2">
+        <div className="mb-5 pl-2">
           <Link href="/">
             <h1 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent tracking-wider uppercase drop-shadow-md">
               FRAME CLASH
@@ -60,7 +61,7 @@ export default function Navigation() {
           </Link>
         </div>
 
-        <div className="flex flex-col gap-1 flex-1">
+        <div className="flex flex-col gap-0.5 flex-1">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/play' && pathname.startsWith(item.href));
             const Icon = item.icon;
@@ -83,7 +84,7 @@ export default function Navigation() {
         </div>
 
         {/* Perfil del Usuario en Desktop */}
-        <div className="mt-auto pt-4 border-t border-slate-800 flex items-center gap-3">
+        <div className="mt-auto pt-3 border-t border-slate-800 flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 font-black flex items-center justify-center text-xs shadow-md">
             🎬
           </div>
