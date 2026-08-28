@@ -3,9 +3,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Crown, Flame, Play, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
+import { Dices, Crown, Flame, Play, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { name: 'Draft', href: '/play/draft', icon: Dices },
   { name: 'Dominio', href: '/play/domination', icon: Crown },
   { name: 'Roguelike', href: '/play/roguelite', icon: Flame },
   { name: 'Trivia', href: '/play', icon: Play },
@@ -27,7 +28,7 @@ export default function Navigation() {
     <>
       {/* 📱 MOBILE BOTTOM NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 z-50 pb-safe shadow-2xl">
-        <div className="flex justify-around items-center h-16 px-1">
+        <div className="flex justify-around items-center h-16 px-0.5">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/play' && pathname.startsWith(item.href));
             const Icon = item.icon;
@@ -40,8 +41,8 @@ export default function Navigation() {
                   isActive ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[8px] tracking-wider mt-0.5">{item.name}</span>
+                <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[7.5px] tracking-wider mt-0.5">{item.name}</span>
               </Link>
             );
           })}
@@ -68,13 +69,13 @@ export default function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
                   isActive
                     ? 'bg-amber-400/10 text-amber-300 border border-amber-400/40 font-bold shadow-md shadow-amber-950/20'
                     : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 font-medium'
                 }`}
               >
-                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
                 <span className="text-xs uppercase tracking-wider">{item.name}</span>
               </Link>
             );
