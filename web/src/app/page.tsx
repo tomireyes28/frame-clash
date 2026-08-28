@@ -32,7 +32,6 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white px-4">
-      {/* Componente que atrapa el token de la URL envuelto en Suspense */}
       <Suspense fallback={null}>
         <AuthCatcher />
       </Suspense>
@@ -46,9 +45,15 @@ export default function Home() {
         </p>
 
         {isLogged ? (
-          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col gap-3 shadow-2xl">
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-3xl border border-slate-800 flex flex-col gap-3 shadow-2xl">
             <p className="text-emerald-400 font-bold text-xs">✅ Sesión iniciada y sincronizada</p>
             <div className="flex flex-col gap-2">
+              <button
+                onClick={() => router.push('/play/pvp-async')}
+                className="w-full py-3 bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-rose-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
+              >
+                ⚔️ Liga de Duelos 1v1 (PvP ELO)
+              </button>
               <button
                 onClick={() => router.push('/play/draft')}
                 className="w-full py-3 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-purple-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"

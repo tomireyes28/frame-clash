@@ -131,6 +131,8 @@ model User {
   collections        UserCollection[]
   dominationProgress DominationProgress[]
   rogueliteProgress  RogueliteProgress?
+  matchesAsPlayer1   PvpMatch[]           @relation("Player1Matches")
+  matchesAsPlayer2   PvpMatch[]           @relation("Player2Matches")
 }
 
 model Category {
@@ -350,4 +352,39 @@ model UserCollection {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, collectionId])
+}
+
+model PvpMatch {
+  id              String   @id @default(cuid())
+  mode            GameMode @default(PVP_ASYNC)
+  status          String   @default("PENDING") // PENDING, IN_PROGRESS, FINISHED
+  categoryKey     String?
+  questionIds     String[]
+
+  // Jugador 1 (Retador)
+  player1Id       String
+  player1Score    Int      @default(0)
+  player1Answers  Json?
+  player1PowerUps String[]
+
+  // Jugador 2 (Rival)
+  player2Id       String?
+  player2Score    Int      @default(0)
+  player2Answers  Json?
+  player2PowerUps String[]
+
+  // Resultado
+  winnerId        String?
+  p1EloChange     Int      @default(0)
+  p2EloChange     Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  player1         User     @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2         User?    @relation("Player2Matches", fields: [player2Id], references: [id], onDelete: Cascade)
+
+  @@index([player1Id])
+  @@index([player2Id])
+  @@index([status])
 }

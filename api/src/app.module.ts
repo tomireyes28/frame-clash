@@ -18,6 +18,7 @@ import { CollectionsModule } from './collections/collections.module';
 import { RogueliteModule } from './roguelite/roguelite.module';
 import { DominationModule } from './domination/domination.module';
 import { DraftModule } from './draft/draft.module';
+import { PvpModule } from './pvp/pvp.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DraftModule } from './draft/draft.module';
     RogueliteModule,
     DominationModule,
     DraftModule,
+    PvpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
