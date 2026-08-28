@@ -41,20 +41,16 @@ export default function InventoryPage() {
     loadInventory();
   }, []);
 
-  // Filtrado reactivo en memoria con salvaguarda
   const filteredCards = useMemo(() => {
     const cardList = Array.isArray(cards) ? cards : [];
     return cardList.filter((card) => {
-      // 1. Filtro de rareza
       if (selectedRarity !== 'ALL' && card.rarity !== selectedRarity) {
         return false;
       }
-      // 2. Filtro de categoría
       if (selectedCategory !== 'ALL') {
         const matchesCategory = card.categories?.some((c) => c.key === selectedCategory);
         if (!matchesCategory) return false;
       }
-      // 3. Filtro de búsqueda por texto
       if (searchQuery.trim().length > 0) {
         const matchTitle = card.title.toLowerCase().includes(searchQuery.toLowerCase());
         if (!matchTitle) return false;
@@ -65,55 +61,41 @@ export default function InventoryPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-        <p className="text-slate-400 font-mono text-sm">Cargando tu Álbum de Cartas...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p className="text-slate-400 font-mono text-xs">Cargando tu Álbum de Cartas...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans pb-24">
+    <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
       {/* HEADER */}
-      <div className="max-w-7xl mx-auto mb-8 border-b border-slate-800 pb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 bg-clip-text text-transparent">
-            Álbum de Cartas
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            {cards.length} Cartas Coleccionadas
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <Link
-            href="/shop"
-            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-amber-950/40 transition"
-          >
-            🛒 Comprar Sobres
-          </Link>
-          <Link
-            href="/collections"
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm rounded-xl border border-slate-700 transition"
-          >
-            ✨ Sets Temáticos
-          </Link>
-        </div>
+      <div className="w-full text-center mb-3">
+        <span className="bg-amber-950/80 text-amber-400 border border-amber-500/40 text-[10px] font-mono font-bold px-3 py-0.5 rounded-full uppercase tracking-wider inline-block mb-1">
+          🃏 Colección TCG
+        </span>
+        <h1 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent uppercase tracking-wider">
+          Álbum de Cartas
+        </h1>
+        <p className="text-[11px] text-slate-400 mt-0.5">
+          {cards.length} Películas coleccionadas en tu cuenta
+        </p>
       </div>
 
-      {/* FILTROS Y BÚSQUEDA */}
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 mb-8 bg-slate-900/80 backdrop-blur-md p-4 md:p-6 rounded-2xl border border-slate-800 shadow-xl">
+      {/* FILTROS TÁCTILES DESLIZABLES */}
+      <div className="w-full flex flex-col gap-2 mb-3 bg-slate-900/90 border border-slate-800 p-2.5 rounded-2xl shadow-md">
         {/* Pestañas de Rarezas */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
           {RARITY_TABS.map((tab) => {
             const isSelected = selectedRarity === tab.key;
             return (
               <button
                 key={tab.key}
                 onClick={() => setSelectedRarity(tab.key)}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
                   isSelected
-                    ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-md shadow-amber-400/30'
+                    ? 'bg-amber-400 text-slate-950 shadow-md'
                     : `${tab.badge} hover:brightness-125`
                 }`}
               >
@@ -123,43 +105,43 @@ export default function InventoryPage() {
           })}
         </div>
 
-        {/* Buscador y Selector de Categorías Oficiales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Buscador & Categorías */}
+        <div className="flex flex-col gap-1.5">
           <input
             type="text"
-            placeholder="Buscar por título de película..."
+            placeholder="Buscar por título..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
           />
 
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-400 transition cursor-pointer"
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 transition cursor-pointer"
           >
-            <option value="ALL">Todas las Categorías Oficiales (31)</option>
+            <option value="ALL">Todas las Categorías (31)</option>
             {OFFICIAL_CATEGORIES.map((cat) => (
               <option key={cat.key} value={cat.key}>
-                {cat.icon} {cat.label} ({cat.type === 'genre' ? 'Género' : cat.type === 'decade' ? 'Década' : 'Temática'})
+                {cat.icon} {cat.label}
               </option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* GRILLA DE CARTAS */}
-      <div className="max-w-7xl mx-auto">
+      {/* GRILLA DE CARTAS 2 COLUMNAS MÓVIL */}
+      <div className="w-full">
         {filteredCards.length === 0 ? (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-12 text-center text-slate-400">
-            <span className="text-5xl block mb-3">🃏</span>
-            <h3 className="text-lg font-bold text-slate-300">No se encontraron cartas</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Abrí sobres en la tienda o ajustá los filtros para ver tus cartas.
-            </p>
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 text-center text-slate-400 text-xs">
+            <span className="text-3xl block mb-2">🃏</span>
+            <p className="font-bold text-slate-300">No se encontraron cartas</p>
+            <Link href="/shop" className="text-amber-400 underline mt-2 block font-semibold">
+              Abrir sobres en la Tienda ➔
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 gap-2.5">
             {filteredCards.map((item) => {
               const cardData: CardData = {
                 id: item.cardId || item.id,
@@ -173,21 +155,21 @@ export default function InventoryPage() {
               };
 
               return (
-                <div key={item.id} className="flex flex-col gap-2">
+                <div key={item.id} className="flex flex-col gap-1">
                   <div
                     onClick={() => setSelectedCard(item)}
                     className="w-full aspect-[2/3] cursor-pointer hover:scale-102 transition-transform"
                   >
-                    <GameCard card={cardData} size="full" isFlippable={true} />
+                    <GameCard card={cardData} size="full" isFlippable={false} />
                   </div>
 
                   {/* Badges de Copias y Nivel */}
-                  <div className="flex justify-between items-center bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-                    <span className="text-amber-400 font-bold font-mono">
+                  <div className="flex justify-between items-center bg-slate-900/90 px-2 py-1 rounded-xl border border-slate-800 text-[10px]">
+                    <span className="text-amber-400 font-black font-mono">
                       NVL {item.level || 1}
                     </span>
                     <span className="text-slate-400 font-medium">
-                      x{item.quantity || 1} {item.quantity > 1 ? 'copias' : 'copia'}
+                      x{item.quantity || 1}
                     </span>
                   </div>
                 </div>
@@ -205,16 +187,16 @@ export default function InventoryPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center gap-4 relative"
+              className="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col items-center gap-3 relative"
             >
               <button
                 onClick={() => setSelectedCard(null)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-white font-bold"
+                className="absolute top-3 right-3 text-slate-400 hover:text-white font-bold text-sm cursor-pointer"
               >
                 ✕
               </button>
 
-              <div className="w-56 aspect-[2/3] my-2">
+              <div className="w-44 aspect-[2/3] my-1">
                 <GameCard
                   card={{
                     id: selectedCard.cardId || selectedCard.id,
@@ -232,15 +214,15 @@ export default function InventoryPage() {
               </div>
 
               <div className="w-full text-center">
-                <h3 className="text-xl font-black text-white">{selectedCard.title}</h3>
-                <p className="text-xs text-slate-400 mt-1">Año: {selectedCard.year}</p>
-                <div className="mt-3 flex justify-around bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                <h3 className="text-sm font-black text-white">{selectedCard.title}</h3>
+                <p className="text-[10px] text-slate-400">Año: {selectedCard.year}</p>
+                <div className="mt-2 flex justify-around bg-slate-950 p-2 rounded-xl border border-slate-800 text-xs font-mono">
                   <div>
-                    <span className="text-slate-400 block">Nivel</span>
+                    <span className="text-slate-400 text-[10px] block">Nivel</span>
                     <span className="text-amber-400 font-bold">{selectedCard.level || 1}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">Cantidad</span>
+                    <span className="text-slate-400 text-[10px] block">Copias</span>
                     <span className="text-white font-bold">{selectedCard.quantity || 1}</span>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-// src/app/shop/page.tsx
+// web/src/app/shop/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,42 +8,47 @@ import ShopHeader from '@/components/shop/ShopHeader';
 import PackDisplay from '@/components/shop/PackDisplay';
 import PackResults from '@/components/shop/PackResults';
 
-// 📚 Los 5 Sobres Oficiales
+// 📚 Los 5 Sobres Oficiales con drop rates y garantías
 const AVAILABLE_PACKS = [
   {
     id: 'BRONZE',
     name: 'Bronce',
     price: 100,
     emoji: '🥉',
-    colorClasses: 'bg-gradient-to-br from-amber-950 via-amber-900 to-stone-900 border-amber-700 shadow-[0_0_25px_rgba(180,83,9,0.3)]',
+    guaranteeText: '3 Cartas (Común / Inusual)',
+    colorClasses: 'bg-gradient-to-r from-amber-950/80 to-slate-900 border-amber-700/60 shadow-amber-950/30',
   },
   {
     id: 'SILVER',
     name: 'Plata',
     price: 250,
     emoji: '🥈',
-    colorClasses: 'bg-gradient-to-br from-slate-700 via-zinc-800 to-stone-900 border-zinc-400 shadow-[0_0_25px_rgba(161,161,170,0.3)]',
+    guaranteeText: '4 Cartas (1 Inusual garantizada)',
+    colorClasses: 'bg-gradient-to-r from-slate-800 to-slate-900 border-zinc-400/60 shadow-zinc-950/30',
   },
   {
     id: 'GOLD',
     name: 'Oro',
     price: 500,
     emoji: '🥇',
-    colorClasses: 'bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-950 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.4)]',
+    guaranteeText: '5 Cartas (1 Rara garantizada)',
+    colorClasses: 'bg-gradient-to-r from-yellow-950/80 to-slate-900 border-amber-400/80 shadow-amber-950/40',
   },
   {
     id: 'PLATINUM',
     name: 'Platino',
     price: 1000,
     emoji: '💠',
-    colorClasses: 'bg-gradient-to-br from-cyan-800 via-sky-900 to-slate-950 border-cyan-400 shadow-[0_0_35px_rgba(34,211,238,0.45)]',
+    guaranteeText: '5 Cartas (1 Épica garantizada)',
+    colorClasses: 'bg-gradient-to-r from-cyan-950/80 to-slate-900 border-cyan-400/80 shadow-cyan-950/40',
   },
   {
     id: 'DIAMOND',
     name: 'Diamante',
     price: 2500,
     emoji: '💎',
-    colorClasses: 'bg-gradient-to-br from-fuchsia-800 via-indigo-900 to-slate-950 border-fuchsia-400 shadow-[0_0_40px_rgba(232,121,249,0.5)]',
+    guaranteeText: '5 Cartas (Alta prob. Legendaria)',
+    colorClasses: 'bg-gradient-to-r from-fuchsia-950/80 to-slate-900 border-fuchsia-400/80 shadow-fuchsia-950/40',
   },
 ];
 
@@ -54,8 +59,9 @@ export default function ShopPage() {
   const [currentCoins, setCurrentCoins] = useState<number | null>(null);
 
   useEffect(() => {
-    shopService.getUserBalance()
-      .then(coins => setCurrentCoins(coins))
+    shopService
+      .getUserBalance()
+      .then((coins) => setCurrentCoins(coins))
       .catch(() => setCurrentCoins(0));
   }, []);
 
@@ -80,15 +86,15 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 font-sans flex flex-col items-center overflow-x-hidden">
-      <ShopHeader currentCoins={currentCoins} />
+    <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
+      <ShopHeader />
 
       {/* Alertas de error */}
       {error && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 w-full max-w-4xl bg-rose-950/60 border border-rose-600 text-rose-200 p-4 rounded-xl text-center font-bold"
+          className="mb-3 w-full bg-rose-950/60 border border-rose-600 text-rose-200 p-3 rounded-2xl text-center text-xs font-bold"
         >
           🚨 {error}
         </motion.div>
@@ -101,14 +107,15 @@ export default function ShopPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 place-items-stretch"
+            className="w-full flex flex-col gap-2.5"
           >
-            {AVAILABLE_PACKS.map(pack => (
+            {AVAILABLE_PACKS.map((pack) => (
               <PackDisplay
                 key={pack.id}
                 packId={pack.id}
                 name={pack.name}
                 price={pack.price}
+                guaranteeText={pack.guaranteeText}
                 colorClasses={pack.colorClasses}
                 emoji={pack.emoji}
                 isLoading={loadingPackId === pack.id}

@@ -162,37 +162,37 @@ export default function PvpLivePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans pb-24">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
+    <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
+      <div className="w-full flex flex-col gap-3.5">
 
         {/* ========================================================= */}
         {/* VISTA 1: LOBBY DE ENTRADA AL COLÍSEO EN VIVO              */}
         {/* ========================================================= */}
         {view === 'LOBBY' && (
-          <div className="flex flex-col gap-6">
-            <div className="bg-gradient-to-r from-red-950/60 via-slate-900 to-slate-900 border-2 border-red-500/50 p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col gap-3.5">
+            <div className="bg-gradient-to-r from-red-950/60 to-slate-900 border border-red-500/50 p-4 rounded-3xl shadow-xl flex flex-col justify-between items-center gap-3">
               <div>
-                <span className="text-[10px] font-mono font-bold text-red-400 uppercase tracking-widest bg-red-950/60 px-3 py-1 rounded-full border border-red-500/40 inline-block mb-2">
+                <span className="text-[9px] font-mono font-bold text-red-400 uppercase tracking-widest bg-red-950/60 px-2.5 py-0.5 rounded-full border border-red-500/40 inline-block mb-1">
                   ⚡ Multijugador Sincrónico
                 </span>
-                <h1 className="text-3xl md:text-5xl font-black uppercase tracking-wider bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                <h1 className="text-xl font-black uppercase tracking-wider bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent">
                   Coliseo en Vivo 1v1
                 </h1>
-                <p className="text-slate-400 text-xs md:text-sm mt-1 max-w-lg">
-                  Enfrentate a otro cinéfilo en tiempo real. 10 preguntas simultáneas donde cada segundo define el puntaje y la variación de ELO.
+                <p className="text-slate-400 text-xs mt-0.5">
+                  10 preguntas simultáneas donde cada segundo define el puntaje y la variación de ELO.
                 </p>
               </div>
 
               <button
                 onClick={handleStartSearching}
-                className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 hover:from-red-500 hover:to-amber-300 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl shadow-xl shadow-red-950/50 transition cursor-pointer transform hover:scale-103"
+                className="w-full py-3.5 bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 hover:from-red-500 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#7f1d1d] active:translate-y-1 active:shadow-none transition cursor-pointer"
               >
                 ⚡ ¡BUSCAR PARTIDA EN VIVO!
               </button>
             </div>
 
             {/* SELECTOR DE CATEGORÍA Y POWER-UPS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-2.5">
               {/* Categoría */}
               <div className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">

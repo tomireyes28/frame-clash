@@ -1,4 +1,6 @@
-// src/components/shop/PackDisplay.tsx
+// web/src/components/shop/PackDisplay.tsx
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -8,54 +10,62 @@ interface PackDisplayProps {
   price: number;
   colorClasses: string;
   emoji: string;
+  guaranteeText?: string;
   isLoading: boolean;
   disabled: boolean;
   onBuy: (packId: string) => void;
 }
 
-export default function PackDisplay({ 
-  packId, 
-  name, 
-  price, 
-  colorClasses, 
+export default function PackDisplay({
+  packId,
+  name,
+  price,
+  colorClasses,
   emoji,
-  isLoading, 
-  disabled, 
-  onBuy 
+  guaranteeText,
+  isLoading,
+  disabled,
+  onBuy,
 }: PackDisplayProps) {
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-      transition={{ duration: 0.3 }}
-      className="w-full max-w-sm bg-black/50 border border-gray-800 rounded-2xl p-8 flex flex-col items-center shadow-2xl"
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      className={`w-full p-3.5 rounded-2xl border-2 flex items-center justify-between shadow-lg relative overflow-hidden ${colorClasses}`}
     >
-      <motion.div 
-        animate={isLoading ? { 
-          x: [-5, 5, -5, 5, 0], 
-          y: [-2, 2, -2, 2, 0],
-          scale: [1, 1.05, 1],
-        } : {}}
-        transition={{ repeat: isLoading ? Infinity : 0, duration: 0.4 }}
-        className={`w-40 h-56 rounded-xl mb-6 border-2 flex items-center justify-center relative overflow-hidden ${colorClasses}`}
-      >
-        <span className="text-6xl absolute opacity-20 rotate-12">{emoji}</span>
-        <span className="text-2xl font-black text-white z-10 uppercase tracking-widest text-center drop-shadow-lg leading-tight">
-          {name}
-        </span>
-      </motion.div>
-      
+      {/* LADO IZQUIERDO: SOBRE EMOJI + INFO */}
+      <div className="flex items-center gap-3 min-w-0">
+        <motion.div
+          animate={isLoading ? { scale: [1, 1.15, 1], rotate: [-5, 5, -5] } : {}}
+          transition={{ repeat: isLoading ? Infinity : 0, duration: 0.5 }}
+          className="w-12 h-14 rounded-xl bg-slate-950/60 border border-white/20 flex items-center justify-center text-2xl shadow-inner shrink-0"
+        >
+          {emoji}
+        </motion.div>
+
+        <div className="min-w-0">
+          <h3 className="text-sm font-black text-white uppercase tracking-wider truncate drop-shadow-md">
+            Sobre {name}
+          </h3>
+          <span className="text-[10px] text-slate-300/90 font-medium block leading-tight">
+            {guaranteeText || 'Cartas coleccionables'}
+          </span>
+          <span className="text-xs font-black text-amber-400 font-mono mt-0.5 block">
+            {price.toLocaleString('es-AR')} 🪙
+          </span>
+        </div>
+      </div>
+
+      {/* LADO DERECHO: BOTÓN DE COMPRA 3D */}
       <button
         onClick={() => onBuy(packId)}
         disabled={disabled || isLoading}
-        className={`w-full py-4 rounded-lg font-black text-xl tracking-widest uppercase transition-all flex justify-center items-center gap-2 ${
+        className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all shadow-[0_4px_0_#b45309] active:translate-y-1 active:shadow-none shrink-0 ${
           disabled || isLoading
-            ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-            : 'bg-yellow-500 hover:bg-yellow-400 text-black hover:scale-105 shadow-[0_0_15px_rgba(234,179,8,0.5)] cursor-pointer'
+            ? 'bg-slate-800 text-slate-500 shadow-none cursor-not-allowed border border-slate-700'
+            : 'bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 cursor-pointer'
         }`}
       >
-        {isLoading ? 'Abriendo...' : `Comprar (${price} 🪙)`}
+        {isLoading ? 'Abriendo...' : 'Comprar'}
       </button>
     </motion.div>
   );

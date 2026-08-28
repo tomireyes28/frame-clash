@@ -129,39 +129,39 @@ export default function BattleRoyalePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans pb-24">
-      <div className="max-w-5xl mx-auto flex flex-col gap-6">
+    <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
+      <div className="w-full flex flex-col gap-3.5">
 
         {/* ========================================================= */}
         {/* VISTA 1: LOBBY DE ESPERA (SALA DE 10 JUGADORES)          */}
         {/* ========================================================= */}
         {view === 'LOBBY' && (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3.5">
             {/* HERO CARD */}
-            <div className="bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border-2 border-amber-500/50 p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="bg-gradient-to-r from-amber-950/60 to-slate-900 border border-amber-500/50 p-4 rounded-3xl shadow-xl flex flex-col justify-between items-center gap-3">
               <div>
-                <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest bg-amber-950/60 px-3 py-1 rounded-full border border-amber-500/40 inline-block mb-2">
+                <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-widest bg-amber-950/60 px-2.5 py-0.5 rounded-full border border-amber-500/40 inline-block mb-1">
                   👑 Modo Supervivencia Masiva
                 </span>
-                <h1 className="text-3xl md:text-5xl font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent">
                   Battle Royale (10 Jugadores)
                 </h1>
-                <p className="text-slate-400 text-xs md:text-sm mt-1 max-w-lg">
-                  5 Rondas de eliminación directa. Los 2 peores puntajes de cada ronda quedan eliminados. ¿Tenés lo necesario para ser el único superviviente?
+                <p className="text-slate-400 text-xs mt-0.5">
+                  5 Rondas de eliminación directa. Los 2 peores puntajes de cada ronda quedan eliminados.
                 </p>
               </div>
 
               {!isInQueue ? (
                 <button
                   onClick={handleJoinLobby}
-                  className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-2xl shadow-xl shadow-orange-950/50 transition cursor-pointer transform hover:scale-103"
+                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer"
                 >
                   ⚔️ ¡ENTRAR AL COLISEO!
                 </button>
               ) : (
                 <button
                   onClick={handleLeaveLobby}
-                  className="w-full md:w-auto px-8 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider rounded-2xl border border-slate-700 transition"
+                  className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider rounded-2xl border border-slate-700 transition"
                 >
                   Cancelar Espera
                 </button>
@@ -169,10 +169,10 @@ export default function BattleRoyalePage() {
             </div>
 
             {/* GRILLA DE 10 CASILLAS DE JUGADORES */}
-            <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-3xl">
+              <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Sala de Espera ({lobbyData.playerCount} / 10 Jugadores):
+                  Sala de Espera ({lobbyData.playerCount} / 10):
                 </h3>
                 {isInQueue && (
                   <span className="text-xs font-mono text-amber-400 animate-pulse font-bold">

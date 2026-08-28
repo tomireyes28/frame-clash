@@ -213,8 +213,8 @@ export default function PvpAsyncPage() {
   const tier = TIER_CONFIG[lobbyData?.rankTier || 'Bronze'] || TIER_CONFIG.Bronze;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans pb-24">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
+    <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
+      <div className="w-full flex flex-col gap-3.5">
 
         {/* ========================================================= */}
         {/* VISTA 1: LOBBY DE DUELOS 1V1                              */}
@@ -222,32 +222,30 @@ export default function PvpAsyncPage() {
         {view === 'LOBBY' && (
           <>
             {/* HERO ELO CARD */}
-            <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border-2 border-slate-800 p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="flex items-center gap-5">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border-2 ${tier.border} ${tier.bg} shadow-lg shrink-0`}>
+            <div className="bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-800 p-4 rounded-3xl shadow-xl flex flex-col justify-between items-center gap-3 relative overflow-hidden">
+              <div className="flex items-center gap-3 w-full">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border-2 ${tier.border} ${tier.bg} shadow-md shrink-0`}>
                   {tier.icon}
                 </div>
-                <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest block">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[9px] font-mono font-bold text-amber-400 uppercase tracking-widest block">
                     Modo Competitivo 1v1
                   </span>
-                  <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-wide flex items-center gap-2">
+                  <h1 className="text-base font-black text-white uppercase tracking-wide flex items-center gap-1.5 truncate">
                     <span>Liga de Duelistas</span>
-                    <span className={`text-xs px-2.5 py-0.5 rounded-full border ${tier.border} ${tier.color} ${tier.bg}`}>
+                    <span className={`text-[10px] px-2 py-0.2 rounded-full border ${tier.border} ${tier.color} ${tier.bg}`}>
                       {tier.label}
                     </span>
                   </h1>
-                  <p className="text-slate-400 text-xs font-mono mt-0.5">
-                    Tu Puntuación ELO: <strong className="text-amber-400 text-sm">{lobbyData?.userElo || 1000} pts</strong>
+                  <p className="text-slate-400 text-xs font-mono">
+                    ELO: <strong className="text-amber-400">{lobbyData?.userElo || 1000} pts</strong>
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowConfigModal(true)}
-                className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-xl shadow-orange-950/40 transition cursor-pointer transform hover:scale-103"
+                className="w-full py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-[0_4px_0_#9a3412] active:translate-y-1 active:shadow-none transition cursor-pointer"
               >
                 ⚔️ ¡BUSCAR NUEVO DUELO 1V1!
               </button>
