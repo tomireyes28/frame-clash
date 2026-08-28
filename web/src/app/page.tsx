@@ -49,6 +49,12 @@ export default function Home() {
             <p className="text-emerald-400 font-bold text-xs">✅ Sesión iniciada y sincronizada</p>
             <div className="flex flex-col gap-2">
               <button
+                onClick={() => router.push('/play/battle-royale')}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-orange-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
+              >
+                👑 Battle Royale (10 Jugadores)
+              </button>
+              <button
                 onClick={() => router.push('/play/pvp-live')}
                 className="w-full py-3 bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 hover:from-red-500 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2 animate-pulse"
               >

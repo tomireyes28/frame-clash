@@ -19,6 +19,7 @@ import { RogueliteModule } from './roguelite/roguelite.module';
 import { DominationModule } from './domination/domination.module';
 import { DraftModule } from './draft/draft.module';
 import { PvpModule } from './pvp/pvp.module';
+import { BattleRoyaleModule } from './battle-royale/battle-royale.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { PvpModule } from './pvp/pvp.module';
     DominationModule,
     DraftModule,
     PvpModule,
+    BattleRoyaleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
