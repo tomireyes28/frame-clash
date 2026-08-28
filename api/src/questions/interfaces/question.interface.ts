@@ -1,25 +1,31 @@
 // api/src/questions/interfaces/question.interface.ts
+import { Difficulty } from '@prisma/client';
 import { TmdbMovieDetails } from '../../tmdb/interfaces/tmdb.interface';
 
-
 export interface GeneratedQuestion {
-  pelicula: string;
-  dificultad: string;
-  pregunta: string;
-  respuestaCorrecta: string;
-  opcionesFalsas: string[];
+  text: string;
+  correctAnswer: string;
+  options: string[]; // Exactamente 4 opciones (1 correcta + 3 falsas mezcladas)
+  difficulty: Difficulty;
+  block: number;     // 1: Elenco, 2: Fechas, 3: Economía, 4: Cinéfilo, 5: Visual
+  typeNumber: number;// 1 al 24
+  imageUrl?: string; // Para fotogramas o posters ciegos
+  categories: string[]; // Keys de categorías oficiales
 }
 
-// Los "Pools" que la plantilla necesita para armar distractores
 export interface QuestionPools {
   directors: string[];
   actors: string[];
+  characters: string[];
   movies: string[];
+  studios: string[];
+  countries: string[];
+  languages: string[];
+  sagas: string[];
 }
 
-// El "Contrato": Toda plantilla debe ser una función que reciba una peli y los pools, 
-// y devuelva una pregunta (o null si a la peli le faltan datos).
-export type QuestionTemplate = (movie: TmdbMovieDetails, pools: QuestionPools) => GeneratedQuestion | null;
-
-// El "Contrato" para las Batallas: Recibe un array de películas
-export type BattleTemplate = (movies: TmdbMovieDetails[]) => GeneratedQuestion | null;
+export type QuestionBuilder = (
+  movie: TmdbMovieDetails,
+  pools: QuestionPools,
+  movieCategories: string[],
+) => GeneratedQuestion[];

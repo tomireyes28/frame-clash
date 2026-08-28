@@ -82,7 +82,7 @@ export class TmdbService {
   }
 
   async getMovieDetails(movieId: number): Promise<TmdbMovieDetails | null> {
-    const url = `${process.env.TMDB_BASE_URL}/movie/${movieId}?append_to_response=credits&language=es-MX`;
+    const url = `${process.env.TMDB_BASE_URL}/movie/${movieId}?append_to_response=credits,keywords,images&language=es-MX&include_image_language=es-MX,es-AR,es,en,null`;
     const config: AxiosRequestConfig = {
       headers: { Authorization: `Bearer ${process.env.TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
     };
