@@ -15,7 +15,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ScoringService } from '../game/scoring.service';
 import { hashAnswer } from '../game/utils/hash.util';
 import { SafeQuestionPayload } from '../game/interfaces/game.interface';
-import { GameMode } from '@prisma/client';
+import { GameMode, Prisma, Difficulty } from '@prisma/client';
 
 interface QueuePlayer {
   socketId: string;
@@ -36,7 +36,7 @@ interface ActiveRoom {
     id: string;
     text: string;
     options: string[];
-    difficulty: string;
+    difficulty: Difficulty;
     imageUrl?: string | null;
     correctAnswer: string;
     answerHash: string;
@@ -279,7 +279,7 @@ export class PvpGateway implements OnGatewayConnection, OnGatewayDisconnect {
       id: q.id,
       text: q.text,
       options: q.options,
-      difficulty: q.difficulty as any,
+      difficulty: q.difficulty,
       imageUrl: q.imageUrl || null,
       answerHash: q.answerHash,
     };
@@ -423,10 +423,10 @@ export class PvpGateway implements OnGatewayConnection, OnGatewayDisconnect {
           questionIds: room.questions.map((q) => q.id),
           player1Id: room.p1.userId,
           player1Score: room.p1.score,
-          player1Answers: room.p1.answers as any,
+          player1Answers: room.p1.answers as unknown as Prisma.InputJsonValue,
           player2Id: room.p2.userId,
           player2Score: room.p2.score,
-          player2Answers: room.p2.answers as any,
+          player2Answers: room.p2.answers as unknown as Prisma.InputJsonValue,
           winnerId,
           p1EloChange,
           p2EloChange,

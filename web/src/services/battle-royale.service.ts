@@ -25,6 +25,16 @@ export interface BRMatchStartPayload {
   players: BRPlayerSummary[];
 }
 
+export interface BRLeaderboardEntry {
+  rank: number;
+  userId: string;
+  name: string;
+  image: string | null;
+  score: number;
+  isEliminated: boolean;
+  hasAnswered: boolean;
+}
+
 export interface BRQuestionStartPayload {
   round: number;
   questionNumber: number;
@@ -32,15 +42,7 @@ export interface BRQuestionStartPayload {
   activePlayerCount: number;
   question: Question;
   timeLimit: number;
-  leaderboard: {
-    rank: number;
-    userId: string;
-    name: string;
-    image: string | null;
-    score: number;
-    isEliminated: boolean;
-    hasAnswered: boolean;
-  }[];
+  leaderboard: BRLeaderboardEntry[];
 }
 
 export interface BRRoundEliminationPayload {
@@ -68,15 +70,13 @@ class BattleRoyaleSocketService {
 
     this.socket = io(WS_URL, {
       auth: { token },
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
+      transports: ['websocket'],
     });
 
     return this.socket;
   }
 
   joinLobby() {
-    if (!this.socket) this.connect();
     this.socket?.emit('join_br_lobby');
   }
 
@@ -84,8 +84,12 @@ class BattleRoyaleSocketService {
     this.socket?.emit('leave_br_lobby');
   }
 
-  submitAnswer(roomId: string, selectedAnswer: string, timeSpentMs: number) {
-    this.socket?.emit('submit_br_answer', { roomId, selectedAnswer, timeSpentMs });
+  submitAnswer(roomId: string, selectedOption: string, timeSpentMs: number) {
+    this.socket?.emit('submit_br_answer', {
+      roomId,
+      selectedOption,
+      timeSpentMs,
+    });
   }
 
   disconnect() {
@@ -93,10 +97,6 @@ class BattleRoyaleSocketService {
       this.socket.disconnect();
       this.socket = null;
     }
-  }
-
-  getSocket(): Socket | null {
-    return this.socket;
   }
 }
 

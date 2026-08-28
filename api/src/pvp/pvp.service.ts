@@ -12,7 +12,7 @@ import {
 } from './interfaces/pvp.interface';
 import { CreatePvpChallengeDto } from './dto/create-pvp-challenge.dto';
 import { SubmitPvpMatchDto } from './dto/submit-pvp-match.dto';
-import { GameMode } from '@prisma/client';
+import { GameMode, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PvpService {
@@ -299,7 +299,7 @@ export class PvpService {
           where: { id: match.id },
           data: {
             player1Score: finalScore,
-            player1Answers: dto.auditLog as any,
+            player1Answers: dto.auditLog as unknown as Prisma.InputJsonValue,
           },
         });
 

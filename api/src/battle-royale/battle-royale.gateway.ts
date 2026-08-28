@@ -14,7 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { hashAnswer } from '../game/utils/hash.util';
 import { SafeQuestionPayload } from '../game/interfaces/game.interface';
-import { GameMode } from '@prisma/client';
+import { GameMode, Difficulty, Question } from '@prisma/client';
 
 interface BRPlayer {
   socketId?: string;
@@ -39,12 +39,12 @@ interface BRRoom {
     id: string;
     text: string;
     options: string[];
-    difficulty: string;
+    difficulty: Difficulty;
     imageUrl?: string | null;
     correctAnswer: string;
     answerHash: string;
   };
-  questionsPool: any[];
+  questionsPool: Question[];
   questionTimer?: NodeJS.Timeout;
   status: 'WAITING' | 'IN_PROGRESS' | 'ROUND_INTERMISSION' | 'FINISHED';
 }
@@ -257,7 +257,7 @@ export class BattleRoyaleGateway implements OnGatewayConnection, OnGatewayDiscon
       id: rawQ.id,
       text: rawQ.text,
       options: rawQ.options,
-      difficulty: rawQ.difficulty as any,
+      difficulty: rawQ.difficulty,
       imageUrl: rawQ.imageUrl || null,
       answerHash: room.currentQuestion.answerHash,
     };

@@ -10,6 +10,7 @@ import {
   BRLobbyUpdatePayload,
   BRMatchStartPayload,
   BRQuestionStartPayload,
+  BRLeaderboardEntry,
   BRRoundEliminationPayload,
   BRMatchEndPayload,
 } from '@/services/battle-royale.service';
@@ -71,11 +72,11 @@ export default function BattleRoyalePage() {
       }, 1000);
     });
 
-    socket.on('br_leaderboard_update', (data: { leaderboard: any[] }) => {
+    socket.on('br_leaderboard_update', (data: { leaderboard: BRLeaderboardEntry[] }) => {
       setQuestionData((prev) => (prev ? { ...prev, leaderboard: data.leaderboard } : null));
     });
 
-    socket.on('br_question_result', (data: { correctAnswer: string; leaderboard: any[] }) => {
+    socket.on('br_question_result', (data: { correctAnswer: string; leaderboard: BRLeaderboardEntry[] }) => {
       if (timerRef.current) clearInterval(timerRef.current);
       setRevealedAnswer(data.correctAnswer);
       setQuestionData((prev) => (prev ? { ...prev, leaderboard: data.leaderboard } : null));
