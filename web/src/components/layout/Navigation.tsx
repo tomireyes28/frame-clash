@@ -3,9 +3,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Flame, Play, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
+import { Crown, Flame, Play, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { name: 'Dominio', href: '/play/domination', icon: Crown },
   { name: 'Roguelike', href: '/play/roguelite', icon: Flame },
   { name: 'Trivia', href: '/play', icon: Play },
   { name: 'Álbum', href: '/inventory', icon: Layers },
@@ -39,8 +40,8 @@ export default function Navigation() {
                   isActive ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[9px] tracking-wider mt-0.5">{item.name}</span>
+                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[8px] tracking-wider mt-0.5">{item.name}</span>
               </Link>
             );
           })}
@@ -49,7 +50,7 @@ export default function Navigation() {
 
       {/* 💻 DESKTOP SIDEBAR */}
       <nav className="hidden md:flex flex-col w-60 fixed top-0 left-0 h-screen bg-slate-950 border-r border-slate-800/80 z-50 p-5">
-        <div className="mb-8 pl-2">
+        <div className="mb-6 pl-2">
           <Link href="/">
             <h1 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent tracking-wider uppercase drop-shadow-md">
               FRAME CLASH
@@ -58,7 +59,7 @@ export default function Navigation() {
           </Link>
         </div>
 
-        <div className="flex flex-col gap-1.5 flex-1">
+        <div className="flex flex-col gap-1 flex-1">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/play' && pathname.startsWith(item.href));
             const Icon = item.icon;
@@ -67,13 +68,13 @@ export default function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
                   isActive
                     ? 'bg-amber-400/10 text-amber-300 border border-amber-400/40 font-bold shadow-md shadow-amber-950/20'
                     : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 font-medium'
                 }`}
               >
-                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} />
                 <span className="text-xs uppercase tracking-wider">{item.name}</span>
               </Link>
             );

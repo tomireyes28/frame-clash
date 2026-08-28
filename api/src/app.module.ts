@@ -16,6 +16,7 @@ import { MissionModule } from './mission/mission.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { CollectionsModule } from './collections/collections.module';
 import { RogueliteModule } from './roguelite/roguelite.module';
+import { DominationModule } from './domination/domination.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RogueliteModule } from './roguelite/roguelite.module';
     LeaderboardModule,
     CollectionsModule,
     RogueliteModule,
+    DominationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

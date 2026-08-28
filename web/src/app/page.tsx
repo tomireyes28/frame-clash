@@ -46,30 +46,36 @@ export default function Home() {
         </p>
 
         {isLogged ? (
-          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col gap-4 shadow-2xl">
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col gap-3.5 shadow-2xl">
             <p className="text-emerald-400 font-bold text-xs">✅ Sesión iniciada y sincronizada</p>
             <div className="flex flex-col gap-2.5">
               <button
+                onClick={() => router.push('/play/domination')}
+                className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-amber-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
+              >
+                👑 Modo Dominio (31 Campañas)
+              </button>
+              <button
                 onClick={() => router.push('/play/roguelite')}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-orange-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-gradient-to-r from-orange-600 to-rose-600 hover:from-orange-500 hover:to-rose-500 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-rose-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
               >
                 🔥 Modo Roguelike (Infinito)
               </button>
               <button
                 onClick={() => router.push('/play')}
-                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
               >
-                🎮 Trivia Clásica (31 Categorías)
+                🎮 Trivia Clásica Rápida
               </button>
               <button
                 onClick={() => router.push('/shop')}
-                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
               >
                 🛒 Tienda de Sobres (5 Tiers)
               </button>
               <button
                 onClick={() => router.push('/inventory')}
-                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition-all hover:scale-102 cursor-pointer"
               >
                 🃏 Álbum de Colección
               </button>
