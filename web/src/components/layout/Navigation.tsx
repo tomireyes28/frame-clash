@@ -3,9 +3,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Dices, Crown, Flame, Play, Sparkles, Layers, ShoppingBag, Target, Trophy, User } from 'lucide-react';
+import {
+  Swords,
+  Zap,
+  Crown,
+  Dices,
+  Flame,
+  Play,
+  Sparkles,
+  Layers,
+  ShoppingBag,
+  Target,
+  Trophy,
+  User,
+} from 'lucide-react';
 
 const NAV_ITEMS = [
+  { name: 'Battle Royale', href: '/play/battle-royale', icon: Crown, highlight: true },
+  { name: 'PvP en Vivo', href: '/play/pvp-live', icon: Zap },
+  { name: 'Duelos 1v1', href: '/play/pvp-async', icon: Swords },
   { name: 'Draft', href: '/play/draft', icon: Dices },
   { name: 'Dominio', href: '/play/domination', icon: Crown },
   { name: 'Roguelike', href: '/play/roguelite', icon: Flame },
@@ -21,7 +37,6 @@ const NAV_ITEMS = [
 export default function Navigation() {
   const pathname = usePathname();
 
-  // No mostramos la navegación en Admin ni en la landing / login
   if (pathname.startsWith('/admin') || pathname === '/login' || pathname === '/') {
     return null;
   }
@@ -30,8 +45,8 @@ export default function Navigation() {
     <>
       {/* 📱 MOBILE BOTTOM NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 z-50 pb-safe shadow-2xl">
-        <div className="flex justify-around items-center h-16 px-0.5">
-          {NAV_ITEMS.map((item) => {
+        <div className="flex justify-around items-center h-16 px-0.5 overflow-x-auto">
+          {NAV_ITEMS.slice(0, 6).map((item) => {
             const isActive = pathname === item.href || (item.href !== '/play' && pathname.startsWith(item.href));
             const Icon = item.icon;
 
@@ -39,12 +54,12 @@ export default function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center justify-center w-full h-full py-1 transition-all ${
+                className={`flex flex-col items-center justify-center min-w-[50px] py-1 transition-all ${
                   isActive ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <Icon size={14} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[6.5px] tracking-wider mt-0.5">{item.name}</span>
+                <span className="text-[6.5px] tracking-wider mt-0.5 truncate">{item.name}</span>
               </Link>
             );
           })}
@@ -52,17 +67,20 @@ export default function Navigation() {
       </nav>
 
       {/* 💻 DESKTOP SIDEBAR */}
-      <nav className="hidden md:flex flex-col w-60 fixed top-0 left-0 h-screen bg-slate-950 border-r border-slate-800/80 z-50 p-5">
-        <div className="mb-5 pl-2">
+      <nav className="hidden md:flex flex-col w-60 fixed top-0 left-0 h-screen bg-slate-950 border-r border-slate-800/80 z-50 p-4 overflow-y-auto">
+        <div className="mb-4 pl-2">
           <Link href="/">
             <h1 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent tracking-wider uppercase drop-shadow-md">
               FRAME CLASH
             </h1>
-            <p className="text-[11px] text-slate-500 font-mono">Movie Trivia TCG</p>
+            <p className="text-[10px] text-slate-500 font-mono">Movie Trivia TCG</p>
           </Link>
         </div>
 
         <div className="flex flex-col gap-0.5 flex-1">
+          <span className="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest px-3 mb-1">
+            Modos de Juego
+          </span>
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/play' && pathname.startsWith(item.href));
             const Icon = item.icon;
@@ -71,13 +89,13 @@ export default function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${
+                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-amber-400/10 text-amber-300 border border-amber-400/40 font-bold shadow-md shadow-amber-950/20'
+                    ? 'bg-amber-400/15 text-amber-300 border border-amber-400/40 font-bold shadow-md'
                     : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 font-medium'
                 }`}
               >
-                <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={15} strokeWidth={isActive ? 2.5 : 2} />
                 <span className="text-xs uppercase tracking-wider">{item.name}</span>
               </Link>
             );
@@ -89,7 +107,7 @@ export default function Navigation() {
           href="/profile"
           className="mt-auto pt-3 border-t border-slate-800 flex items-center gap-3 hover:bg-slate-900 p-2 rounded-2xl transition"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 font-black flex items-center justify-center text-xs shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 font-black flex items-center justify-center text-xs shadow-md">
             🎬
           </div>
           <div className="truncate">
