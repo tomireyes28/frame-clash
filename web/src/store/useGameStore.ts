@@ -5,6 +5,9 @@ export interface Question {
   text: string;
   options: string[];
   difficulty: string;
+  imageUrl?: string | null;
+  block?: number | null;
+  typeNumber?: number | null;
   answerHash: string;
 }
 

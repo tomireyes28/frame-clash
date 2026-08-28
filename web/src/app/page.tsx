@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Cookies from 'js-cookie';
 import { AuthCatcher } from '@/components/auth/AuthCatcher';
 import { useRouter } from 'next/navigation';
@@ -21,8 +21,6 @@ export default function Home() {
   }, []);
 
   const handleLogin = () => {
-    // 2. Usamos variables de entorno para que funcione en local y en producción
-    // Asegurate de crear un archivo .env.local en el frontend con NEXT_PUBLIC_API_URL=http://localhost:3000
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     window.location.href = `${apiUrl}/auth/google`;
   };
@@ -33,36 +31,48 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#0f3a61] text-white">
-      {/* Componente fantasma que atrapa el token de la URL */}
-      <AuthCatcher /> 
+    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white px-4">
+      {/* Componente que atrapa el token de la URL envuelto en Suspense */}
+      <Suspense fallback={null}>
+        <AuthCatcher />
+      </Suspense>
 
-      <div className="text-center">
-        <h1 className="text-6xl font-black text-[#E50914] mb-2 tracking-wider drop-shadow-lg">
+      <div className="text-center max-w-lg">
+        <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-amber-400 via-orange-500 to-rose-600 bg-clip-text text-transparent mb-2 tracking-wider drop-shadow-2xl">
           FRAME CLASH
         </h1>
-        <p className="text-xl mb-8 font-light">La trivia definitiva de cine</p>
-        
+        <p className="text-lg md:text-xl mb-8 text-slate-400 font-light">
+          La trivia definitiva de cine & cartas coleccionables
+        </p>
+
         {isLogged ? (
-          <div className="bg-[#09090b] p-6 rounded-lg border border-gray-700 flex flex-col gap-4">
-            <p className="text-green-400 font-bold">✅ Sesión iniciada y segura</p>
-            <button 
-              onClick={() => router.push('/play')}
-              className="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 transition-colors"
-            >
-              Entrar al Coliseo
-            </button>
-            <button 
+          <div className="bg-slate-900/90 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col gap-4 shadow-2xl">
+            <p className="text-emerald-400 font-bold">✅ Sesión iniciada y sincronizada</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => router.push('/play')}
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950/40 transition-all hover:scale-102"
+              >
+                🎮 Jugar Trivia Clásica
+              </button>
+              <button
+                onClick={() => router.push('/shop')}
+                className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl shadow-lg shadow-orange-950/40 transition-all hover:scale-102"
+              >
+                🛒 Tienda de Sobres
+              </button>
+            </div>
+            <button
               onClick={handleLogout}
-              className="text-sm text-gray-400 underline hover:text-white mt-2"
+              className="text-xs text-slate-400 underline hover:text-white mt-2"
             >
               Cerrar sesión
             </button>
           </div>
         ) : (
-          <button 
+          <button
             onClick={handleLogin}
-            className="px-8 py-4 bg-[#E50914] text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg rounded-2xl shadow-xl shadow-orange-950/50 hover:scale-105 transition-all"
           >
             Iniciar sesión con Google
           </button>

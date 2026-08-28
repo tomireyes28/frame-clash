@@ -15,8 +15,12 @@ export interface SubmitGameResponse {
   success: boolean;
   sessionId: string;
   finalScore: number;
-  coinsEarned: number; 
+  correctCount?: number;
+  totalQuestions?: number;
+  stars?: number;
+  coinsEarned: number;
   xpEarned: number;
+  avgResponseTime?: number;
   isAdjusted: boolean;
   message: string;
 }

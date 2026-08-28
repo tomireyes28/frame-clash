@@ -8,29 +8,43 @@ import ShopHeader from '@/components/shop/ShopHeader';
 import PackDisplay from '@/components/shop/PackDisplay';
 import PackResults from '@/components/shop/PackResults';
 
-// 📚 El catálogo de sobres disponibles
+// 📚 Los 5 Sobres Oficiales
 const AVAILABLE_PACKS = [
   {
-    id: 'STANDARD',
-    name: 'Estándar',
+    id: 'BRONZE',
+    name: 'Bronce',
     price: 100,
-    emoji: '🎬',
-    colorClasses: 'bg-linear-to-br from-purple-900 to-indigo-900 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.4)]',
+    emoji: '🥉',
+    colorClasses: 'bg-gradient-to-br from-amber-950 via-amber-900 to-stone-900 border-amber-700 shadow-[0_0_25px_rgba(180,83,9,0.3)]',
   },
   {
-    id: 'PREMIUM',
-    name: 'Premium',
+    id: 'SILVER',
+    name: 'Plata',
+    price: 250,
+    emoji: '🥈',
+    colorClasses: 'bg-gradient-to-br from-slate-700 via-zinc-800 to-stone-900 border-zinc-400 shadow-[0_0_25px_rgba(161,161,170,0.3)]',
+  },
+  {
+    id: 'GOLD',
+    name: 'Oro',
     price: 500,
-    emoji: '💎',
-    colorClasses: 'bg-linear-to-br from-yellow-700 to-amber-900 border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.4)]',
+    emoji: '🥇',
+    colorClasses: 'bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-950 border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.4)]',
   },
   {
-    id: 'DIRECTOR',
-    name: 'Director',
+    id: 'PLATINUM',
+    name: 'Platino',
     price: 1000,
-    emoji: '🎥',
-    colorClasses: 'bg-linear-to-br from-red-900 to-black border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.5)]',
-  }
+    emoji: '💠',
+    colorClasses: 'bg-gradient-to-br from-cyan-800 via-sky-900 to-slate-950 border-cyan-400 shadow-[0_0_35px_rgba(34,211,238,0.45)]',
+  },
+  {
+    id: 'DIAMOND',
+    name: 'Diamante',
+    price: 2500,
+    emoji: '💎',
+    colorClasses: 'bg-gradient-to-br from-fuchsia-800 via-indigo-900 to-slate-950 border-fuchsia-400 shadow-[0_0_40px_rgba(232,121,249,0.5)]',
+  },
 ];
 
 export default function ShopPage() {
@@ -53,7 +67,7 @@ export default function ShopPage() {
     try {
       const result = await shopService.buyPack(packId);
       setPackResult(result);
-      setCurrentCoins(result.newBalance); 
+      setCurrentCoins(result.newBalance);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -66,16 +80,15 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white p-8 font-sans flex flex-col items-center overflow-x-hidden">
-      
+    <div className="min-h-screen bg-slate-950 text-white p-6 md:p-10 font-sans flex flex-col items-center overflow-x-hidden">
       <ShopHeader currentCoins={currentCoins} />
 
       {/* Alertas de error */}
       {error && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 w-full max-w-4xl bg-red-900/40 border border-red-500 text-red-200 p-4 rounded-lg text-center font-bold"
+          className="mb-8 w-full max-w-4xl bg-rose-950/60 border border-rose-600 text-rose-200 p-4 rounded-xl text-center font-bold"
         >
           🚨 {error}
         </motion.div>
@@ -83,12 +96,12 @@ export default function ShopPage() {
 
       <AnimatePresence mode="wait">
         {!packResult ? (
-          <motion.div 
+          <motion.div
             key="shop-catalog"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 place-items-center"
+            className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 place-items-stretch"
           >
             {AVAILABLE_PACKS.map(pack => (
               <PackDisplay
@@ -100,7 +113,7 @@ export default function ShopPage() {
                 emoji={pack.emoji}
                 isLoading={loadingPackId === pack.id}
                 disabled={
-                  (loadingPackId !== null && loadingPackId !== pack.id) || 
+                  (loadingPackId !== null && loadingPackId !== pack.id) ||
                   (currentCoins !== null && currentCoins < pack.price)
                 }
                 onBuy={handleBuyPack}
@@ -108,14 +121,13 @@ export default function ShopPage() {
             ))}
           </motion.div>
         ) : (
-          <PackResults 
+          <PackResults
             key="pack-results"
-            packResult={packResult} 
-            onClose={() => setPackResult(null)} 
+            packResult={packResult}
+            onClose={() => setPackResult(null)}
           />
         )}
       </AnimatePresence>
-
     </div>
   );
 }

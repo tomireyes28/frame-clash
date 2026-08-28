@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { OFFICIAL_CATEGORIES } from '@/utils/categories'; // 👈 1. Importamos el diccionario oficial
+import { OFFICIAL_CATEGORIES } from '@/utils/categories';
 
 export interface CardData {
   id: string;
@@ -11,34 +11,41 @@ export interface CardData {
   title: string;
   year: number;
   posterPath: string | null;
+  backdropPath?: string | null;
   rarity: string;
+  atk?: number;
+  def?: number;
+  spd?: number;
+  box?: number;
+  crt?: number;
+  level?: number;
   categories?: { id?: string; key: string }[];
-  powerUpAction?: string | null; // 🔥 Agregamos | null
-  powerUpValue?: number | null;  // 🔥 Agregamos | null
+  powerUpAction?: string | null;
+  powerUpValue?: number | null;
 }
 
 interface GameCardProps {
   card: CardData;
-  size?: 'sm' | 'md' | 'lg' | 'full'; 
-  isFlippable?: boolean;     
-  onClick?: () => void;      
+  size?: 'sm' | 'md' | 'lg' | 'full';
+  isFlippable?: boolean;
+  onClick?: () => void;
 }
 
-// 👈 2. Función traductora de categorías
 const getCategoryLabel = (key: string) => {
   const cat = OFFICIAL_CATEGORIES.find(c => c.key === key);
-  return cat ? cat.label : key.replace(/_/g, ' '); 
+  return cat ? `${cat.icon} ${cat.label}` : key.replace(/_/g, ' ');
 };
 
 export default function GameCard({ card, size = 'md', isFlippable = true, onClick }: GameCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const rarityStyles: Record<string, { border: string; shadow: string; badge: string }> = {
-    COMMON: { border: 'border-gray-500', shadow: 'shadow-gray-500/20', badge: 'bg-gray-600 text-white' },
-    UNCOMMON: { border: 'border-green-500', shadow: 'shadow-green-500/30', badge: 'bg-green-600 text-white' },
-    RARE: { border: 'border-blue-500', shadow: 'shadow-blue-500/40', badge: 'bg-blue-600 text-white' },
-    EPIC: { border: 'border-purple-500', shadow: 'shadow-purple-500/50', badge: 'bg-purple-600 text-white' },
-    LEGENDARY: { border: 'border-yellow-400', shadow: 'shadow-yellow-400/60', badge: 'bg-yellow-500 text-black' },
+  // 5 Rarezas y Colores Oficiales
+  const rarityStyles: Record<string, { border: string; shadow: string; badge: string; name: string }> = {
+    COMMON: { border: 'border-zinc-400', shadow: 'shadow-zinc-500/20', badge: 'bg-zinc-600 text-zinc-100', name: 'Común' },
+    UNCOMMON: { border: 'border-emerald-500', shadow: 'shadow-emerald-500/30', badge: 'bg-emerald-600 text-white', name: 'Inusual' },
+    RARE: { border: 'border-sky-400', shadow: 'shadow-sky-400/40', badge: 'bg-sky-500 text-white', name: 'Rara' },
+    EPIC: { border: 'border-purple-500', shadow: 'shadow-purple-500/50', badge: 'bg-purple-600 text-white', name: 'Épica' },
+    LEGENDARY: { border: 'border-amber-400', shadow: 'shadow-amber-400/60', badge: 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-bold', name: 'Legendaria' },
   };
 
   const currentStyle = rarityStyles[card.rarity] || rarityStyles.COMMON;
@@ -60,82 +67,103 @@ export default function GameCard({ card, size = 'md', isFlippable = true, onClic
   };
 
   return (
-    <div 
-      className={`relative cursor-pointer group perspective-[1000px] ${sizeClasses[size]}`}
+    <div
       onClick={handleCardClick}
+      className={`relative cursor-pointer transition-transform duration-300 transform hover:scale-105 ${sizeClasses[size]}`}
+      style={{ perspective: '1000px' }}
     >
-      <div 
-        className={`relative w-full h-full rounded-xl transition-all duration-500 transform-3d shadow-lg hover:shadow-2xl ${currentStyle.shadow} ${isFlipped ? 'transform-[rotateY(180deg)]' : ''}`}
+      <div
+        className={`w-full h-full relative transition-transform duration-500 rounded-xl ${
+          isFlipped ? '[transform:rotateY(180deg)]' : ''
+        }`}
+        style={{ transformStyle: 'preserve-3d' }}
       >
-        
-        {/* ========================================== */}
-        {/* 🎭 FRENTE DE LA CARTA */}
-        {/* ========================================== */}
-        <div className={`absolute inset-0 w-full h-full rounded-xl border-2 ${currentStyle.border} bg-[#09090b] overflow-hidden backface-hidden`}>
-          
-          <div className="absolute top-2 right-2 z-20">
-            <span className={`text-[9px] md:text-xs font-black uppercase tracking-widest px-2 py-1 rounded shadow-md ${currentStyle.badge}`}>
-              {card.rarity}
+        {/* FRENTE DE LA CARTA */}
+        <div
+          className={`absolute inset-0 w-full h-full rounded-xl overflow-hidden border-2 bg-slate-900 shadow-xl flex flex-col justify-between p-2 [backface-visibility:hidden] ${currentStyle.border} ${currentStyle.shadow}`}
+        >
+          {/* Badge superior de rareza y año */}
+          <div className="flex justify-between items-center z-10">
+            <span className={`text-[10px] md:text-xs px-2 py-0.5 rounded-full font-semibold ${currentStyle.badge}`}>
+              {currentStyle.name}
+            </span>
+            <span className="text-[10px] md:text-xs text-zinc-300 font-mono bg-black/60 px-1.5 py-0.5 rounded">
+              {card.year}
             </span>
           </div>
 
-          <div className="relative w-full h-full">
-            {card.posterPath ? (
-              <Image 
-                src={`https://image.tmdb.org/t/p/w500${card.posterPath}`} 
-                alt={card.title} 
-                fill 
-                sizes="(max-width: 768px) 50vw, 33vw"
-                className="object-cover" 
+          {/* Póster de la Película */}
+          {card.posterPath ? (
+            <div className="absolute inset-0 z-0">
+              <Image
+                src={`https://image.tmdb.org/t/p/w500${card.posterPath}`}
+                alt={card.title}
+                fill
+                className="object-cover opacity-80 hover:opacity-100 transition-opacity"
+                sizes="(max-width: 768px) 150px, 300px"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-600 font-bold p-4 text-center">
-                {card.title}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+            </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-800 text-zinc-400 text-xs">
+              Sin Póster
+            </div>
+          )}
+
+          {/* Pie de carta: Título y Stats */}
+          <div className="z-10 bg-black/80 backdrop-blur-sm p-1.5 rounded-lg border border-white/10">
+            <h3 className="text-xs md:text-sm font-bold truncate text-white text-center">
+              {card.title}
+            </h3>
+            {card.atk !== undefined && (
+              <div className="grid grid-cols-3 gap-1 text-[9px] md:text-[10px] mt-1 text-center font-mono">
+                <span className="text-red-400">⚔️ {card.atk}</span>
+                <span className="text-blue-400">🛡️ {card.def}</span>
+                <span className="text-emerald-400">⚡ {card.spd}</span>
               </div>
             )}
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/90 to-transparent pointer-events-none" />
           </div>
         </div>
 
-        {/* ========================================== */}
-        {/* 🛡️ DORSO DE LA CARTA */}
-        {/* ========================================== */}
-        <div className={`absolute inset-0 w-full h-full rounded-xl border-2 ${currentStyle.border} bg-gray-900 p-4 flex flex-col backface-hidden transform-[rotateY(180deg)]`}>
-          
-          <div className="text-center mb-4 border-b border-gray-700 pb-2">
-            <h3 className="font-black text-white text-sm md:text-lg leading-tight line-clamp-2">{card.title}</h3>
-            <p className="text-gray-400 text-xs font-bold mt-1">{card.year}</p>
-          </div>
-
-          <div className="flex-1">
-            <p className="text-[10px] md:text-xs text-gray-500 font-black uppercase tracking-widest mb-2">Categorías</p>
-            <div className="flex flex-wrap gap-1">
-              {card.categories?.map((cat) => (
-                <span key={cat.key} className="text-[9px] md:text-[10px] bg-gray-800 border border-gray-600 text-gray-300 px-1.5 py-0.5 rounded">
-                  {getCategoryLabel(cat.key)} {/* 👈 3. Usamos la función acá */}
-                </span>
-              ))}
-              {(!card.categories || card.categories.length === 0) && (
-                <span className="text-xs text-gray-600 italic">Sin asignar</span>
-              )}
+        {/* DORSO DE LA CARTA (POWER-UPS & CATEGORÍAS) */}
+        <div
+          className={`absolute inset-0 w-full h-full rounded-xl p-3 border-2 bg-slate-950 text-white flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] ${currentStyle.border} ${currentStyle.shadow}`}
+        >
+          <div>
+            <div className="text-center border-b border-white/10 pb-1 mb-2">
+              <h4 className="text-xs md:text-sm font-bold truncate">{card.title}</h4>
+              <p className="text-[10px] text-zinc-400">Nivel {card.level || 1} / 3</p>
             </div>
+
+            {/* Power-Up activo */}
+            {card.powerUpAction && (
+              <div className="bg-white/5 p-2 rounded-lg border border-white/10 my-2">
+                <p className="text-[10px] font-semibold text-amber-300">⚡ Power-Up</p>
+                <p className="text-xs mt-0.5">
+                  {card.powerUpAction === 'REMOVE_OPTION'
+                    ? `Elimina ${card.powerUpValue || 1} opción incorrecta`
+                    : card.powerUpAction}
+                </p>
+              </div>
+            )}
+
+            {/* Categorías */}
+            {card.categories && card.categories.length > 0 && (
+              <div className="mt-2">
+                <p className="text-[10px] text-zinc-400 mb-1">Categorías:</p>
+                <div className="flex flex-wrap gap-1">
+                  {card.categories.map((c, i) => (
+                    <span key={i} className="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-zinc-200">
+                      {getCategoryLabel(c.key)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="mt-auto pt-3 border-t border-gray-700">
-            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">Poder Especial</p>
-            <div className="bg-black/50 rounded p-2 border border-gray-800 flex items-center justify-center min-h-10">
-               {card.powerUpAction ? (
-                 <span className="text-[10px] font-bold text-indigo-400 text-center uppercase">
-                   {card.powerUpAction} {card.powerUpValue && `(${card.powerUpValue})`}
-                 </span>
-               ) : (
-                 <span className="text-xs text-gray-600 italic">Sin poder...</span>
-               )}
-            </div>
-          </div>
-
+          <p className="text-[9px] text-center text-zinc-400 italic">Click para voltear</p>
         </div>
-
       </div>
     </div>
   );
