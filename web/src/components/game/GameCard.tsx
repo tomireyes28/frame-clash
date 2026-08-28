@@ -7,9 +7,9 @@ import { OFFICIAL_CATEGORIES } from '@/utils/categories';
 
 export interface CardData {
   id: string;
-  tmdbId: number;
+  tmdbId?: number;
   title: string;
-  year: number;
+  year?: number;
   posterPath: string | null;
   backdropPath?: string | null;
   rarity: string;

@@ -6,7 +6,7 @@ import { shopService, BuyPackResponse } from '@/services/shop.service';
 import { AnimatePresence, motion } from 'framer-motion';
 import ShopHeader from '@/components/shop/ShopHeader';
 import PackDisplay from '@/components/shop/PackDisplay';
-import PackResults from '@/components/shop/PackResults';
+import PackOpeningModal from '@/components/shop/PackOpeningModal';
 
 // 📚 Los 5 Sobres Oficiales con drop rates y garantías
 const AVAILABLE_PACKS = [
@@ -56,6 +56,7 @@ export default function ShopPage() {
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [packResult, setPackResult] = useState<BuyPackResponse | null>(null);
+  const [activePackName, setActivePackName] = useState<string>('Oro');
   const [currentCoins, setCurrentCoins] = useState<number | null>(null);
 
   useEffect(() => {
@@ -68,7 +69,9 @@ export default function ShopPage() {
   const handleBuyPack = async (packId: string) => {
     setLoadingPackId(packId);
     setError(null);
-    setPackResult(null);
+
+    const pack = AVAILABLE_PACKS.find((p) => p.id === packId);
+    if (pack) setActivePackName(pack.name);
 
     try {
       const result = await shopService.buyPack(packId);
@@ -90,7 +93,7 @@ export default function ShopPage() {
       <ShopHeader />
 
       {/* Alertas de error */}
-      {error && (
+      {error ? (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -98,42 +101,37 @@ export default function ShopPage() {
         >
           🚨 {error}
         </motion.div>
-      )}
+      ) : null}
 
-      <AnimatePresence mode="wait">
-        {!packResult ? (
-          <motion.div
-            key="shop-catalog"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="w-full flex flex-col gap-2.5"
-          >
-            {AVAILABLE_PACKS.map((pack) => (
-              <PackDisplay
-                key={pack.id}
-                packId={pack.id}
-                name={pack.name}
-                price={pack.price}
-                guaranteeText={pack.guaranteeText}
-                colorClasses={pack.colorClasses}
-                emoji={pack.emoji}
-                isLoading={loadingPackId === pack.id}
-                disabled={
-                  (loadingPackId !== null && loadingPackId !== pack.id) ||
-                  (currentCoins !== null && currentCoins < pack.price)
-                }
-                onBuy={handleBuyPack}
-              />
-            ))}
-          </motion.div>
-        ) : (
-          <PackResults
-            key="pack-results"
+      <div className="w-full flex flex-col gap-2.5">
+        {AVAILABLE_PACKS.map((pack) => (
+          <PackDisplay
+            key={pack.id}
+            packId={pack.id}
+            name={pack.name}
+            price={pack.price}
+            guaranteeText={pack.guaranteeText}
+            colorClasses={pack.colorClasses}
+            emoji={pack.emoji}
+            isLoading={loadingPackId === pack.id}
+            disabled={
+              (loadingPackId !== null && loadingPackId !== pack.id) ||
+              (currentCoins !== null && currentCoins < pack.price)
+            }
+            onBuy={handleBuyPack}
+          />
+        ))}
+      </div>
+
+      {/* MODAL 3D GACHA DE APERTURA DE SOBRE */}
+      <AnimatePresence>
+        {packResult ? (
+          <PackOpeningModal
             packResult={packResult}
+            packName={activePackName}
             onClose={() => setPackResult(null)}
           />
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );
