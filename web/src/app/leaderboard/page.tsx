@@ -3,15 +3,23 @@
 
 import React, { useEffect, useState } from 'react';
 import { leaderboardService, LeaderboardResult } from '@/services/leaderboard.service';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 
+// 📚 Vercel Best Practice: rendering-hoist-jsx
 const TABS = [
   { key: 'SCORE', label: 'Récord Pts', icon: '🏆' },
   { key: 'ROGUELITE', label: 'Roguelike', icon: '🔥' },
   { key: 'DOMINATION', label: 'Dominio', icon: '⭐' },
   { key: 'COLLECTOR', label: 'Colección', icon: '🃏' },
 ];
+
+const getRankBadge = (rank: number) => {
+  if (rank === 1) return { icon: '👑', color: 'text-amber-400', border: 'border-amber-400 bg-amber-400/20' };
+  if (rank === 2) return { icon: '🥈', color: 'text-slate-300', border: 'border-slate-300 bg-slate-300/20' };
+  if (rank === 3) return { icon: '🥉', color: 'text-amber-600', border: 'border-amber-600 bg-amber-600/20' };
+  return { icon: `#${rank}`, color: 'text-slate-400', border: 'border-slate-800 bg-slate-900' };
+};
 
 export default function LeaderboardPage() {
   const [activeType, setActiveType] = useState<string>('SCORE');
@@ -35,13 +43,6 @@ export default function LeaderboardPage() {
   useEffect(() => {
     fetchLeaderboard(activeType);
   }, [activeType]);
-
-  const getRankBadge = (rank: number) => {
-    if (rank === 1) return { icon: '👑', color: 'text-amber-400', border: 'border-amber-400 bg-amber-400/20' };
-    if (rank === 2) return { icon: '🥈', color: 'text-slate-300', border: 'border-slate-300 bg-slate-300/20' };
-    if (rank === 3) return { icon: '🥉', color: 'text-amber-600', border: 'border-amber-600 bg-amber-600/20' };
-    return { icon: `#${rank}`, color: 'text-slate-400', border: 'border-slate-800 bg-slate-900' };
-  };
 
   return (
     <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
@@ -80,7 +81,7 @@ export default function LeaderboardPage() {
       </div>
 
       {/* TU POSICIÓN PERSONAL */}
-      {leaderboardData?.currentUser && (
+      {leaderboardData?.currentUser ? (
         <motion.div
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
@@ -102,14 +103,14 @@ export default function LeaderboardPage() {
             <span className="text-xs font-black text-amber-400 font-mono block">
               {leaderboardData.currentUser.primaryMetric}
             </span>
-            {leaderboardData.currentUser.secondaryMetric && (
+            {leaderboardData.currentUser.secondaryMetric ? (
               <span className="text-[9px] text-slate-400 block font-medium">
                 {leaderboardData.currentUser.secondaryMetric}
               </span>
-            )}
+            ) : null}
           </div>
         </motion.div>
-      )}
+      ) : null}
 
       {/* LISTADO DE JUGADORES */}
       <div className="w-full flex flex-col gap-1.5">
@@ -119,75 +120,76 @@ export default function LeaderboardPage() {
             <p className="text-slate-400 text-[10px] font-mono">Cargando ranking...</p>
           </div>
         ) : error ? (
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 text-center text-rose-400 text-xs">
-            {error}
+          <div className="bg-rose-950/50 border border-rose-600/50 p-4 rounded-2xl text-center text-xs text-rose-200">
+            ⚠️ {error}
           </div>
-        ) : leaderboardData?.players.length === 0 ? (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 text-center text-slate-500 text-xs">
-            <span className="text-3xl block mb-1">🎬</span>
-            <p className="font-bold text-slate-300">Aún no hay registros aquí.</p>
+        ) : !leaderboardData || leaderboardData.players.length === 0 ? (
+          <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl text-center text-xs text-slate-400">
+            <span className="text-2xl block mb-1">👑</span>
+            <p className="font-bold text-slate-300">Aún no hay puntuaciones en esta tabla.</p>
           </div>
         ) : (
-          <AnimatePresence mode="popLayout">
-            {leaderboardData?.players.map((player, index) => {
-              const rankStyle = getRankBadge(player.rank);
-              const isTop3 = player.rank <= 3;
+          leaderboardData.players.map((player) => {
+            const badge = getRankBadge(player.rank);
 
-              return (
-                <motion.div
-                  key={player.userId}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  className={`p-2.5 rounded-xl border transition flex items-center justify-between shadow-sm ${
-                    player.isCurrentUser
-                      ? 'bg-amber-950/30 border-amber-400'
-                      : isTop3
-                      ? 'bg-slate-900/90 border-slate-700'
-                      : 'bg-slate-900/60 border-slate-800/80'
-                  }`}
-                >
-                  {/* IZQUIERDA: PUESTO + AVATAR + NOMBRE */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0 border ${rankStyle.border} ${rankStyle.color}`}
-                    >
-                      {rankStyle.icon}
-                    </div>
-
-                    <div className="relative w-7 h-7 rounded-lg overflow-hidden bg-slate-950 border border-slate-800 shrink-0">
-                      {player.image ? (
-                        <Image src={player.image} alt={player.name} fill sizes="28px" className="object-cover" />
-                      ) : (
-                        <span className="text-xs flex items-center justify-center w-full h-full">👤</span>
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-white truncate max-w-[120px]">
-                        {player.name}
-                      </h4>
-                      <span className="text-[9px] text-slate-400 font-mono block">
-                        Nv. {player.level}
-                      </span>
-                    </div>
+            return (
+              <div
+                key={player.userId}
+                className={`p-2.5 rounded-2xl border flex items-center justify-between transition ${
+                  player.isCurrentUser
+                    ? 'bg-amber-950/40 border-amber-400/80 shadow-md ring-1 ring-amber-400/40'
+                    : 'bg-slate-900/90 border-slate-800'
+                }`}
+              >
+                {/* Ranking & Avatar & Nombre */}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black font-mono border shrink-0 ${badge.border} ${badge.color}`}
+                  >
+                    {badge.icon}
                   </div>
 
-                  {/* DERECHA: MÉTRICAS */}
-                  <div className="text-right shrink-0 pl-1">
-                    <span className="text-xs font-black text-amber-400 font-mono block">
-                      {player.primaryMetric}
-                    </span>
-                    {player.secondaryMetric && (
-                      <span className="text-[8px] text-slate-400 block font-medium">
-                        {player.secondaryMetric}
-                      </span>
+                  <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shrink-0 flex items-center justify-center">
+                    {player.image ? (
+                      <Image src={player.image} alt={player.name} fill sizes="32px" className="object-cover" />
+                    ) : (
+                      <span className="text-sm">🎬</span>
                     )}
                   </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-black text-white truncate max-w-[110px]">
+                        {player.name}
+                      </span>
+                      {player.level ? (
+                        <span className="text-[8px] bg-slate-800 text-amber-400 font-mono px-1 py-0.2 rounded font-bold">
+                          ⭐{player.level}
+                        </span>
+                      ) : null}
+                    </div>
+                    {player.title ? (
+                      <span className="text-[9px] text-slate-400 block truncate max-w-[110px]">
+                        👑 {player.title}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                {/* Métricas */}
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-black text-amber-400 font-mono block">
+                    {player.primaryMetric}
+                  </span>
+                  {player.secondaryMetric ? (
+                    <span className="text-[9px] text-slate-400 block font-mono">
+                      {player.secondaryMetric}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

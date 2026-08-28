@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Swords, Layers, ShoppingBag, Trophy, Target } from 'lucide-react';
 
+// 📚 Vercel Best Practice: rendering-hoist-jsx
 const TABS = [
   { name: 'Batalla', href: '/', icon: Swords },
   { name: 'Mazo', href: '/inventory', icon: Layers },
@@ -38,9 +39,9 @@ export default function MobileBottomNav() {
                 isActive ? 'text-amber-400 font-bold scale-105' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              {isActive && (
+              {isActive ? (
                 <div className="absolute top-0 w-8 h-1 bg-amber-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
-              )}
+              ) : null}
               <div
                 className={`p-1.5 rounded-xl transition ${
                   isActive ? 'bg-amber-400/15 text-amber-400' : 'group-hover:bg-slate-900'

@@ -5,7 +5,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import confetti from 'canvas-confetti';
 import {
   battleRoyaleSocketService,
   BRLobbyUpdatePayload,
@@ -88,11 +87,12 @@ export default function BattleRoyalePage() {
       soundManager.playIncorrect();
     });
 
-    socket.on('br_match_end', (data: BRMatchEndPayload) => {
+    socket.on('br_match_end', async (data: BRMatchEndPayload) => {
       setPodiumData(data);
       setView('PODIUM');
       soundManager.playVictory();
       try {
+        const confetti = (await import('canvas-confetti')).default;
         confetti({
           particleCount: 120,
           spread: 80,

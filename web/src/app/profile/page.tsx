@@ -1,13 +1,21 @@
 // web/src/app/profile/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { profileService, UserProfileData } from '@/services/profile.service';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 
 type ProfileTab = 'STATS' | 'ACHIEVEMENTS' | 'HISTORY';
+
+// 📚 Vercel Best Practice: rendering-hoist-jsx
+const ACHIEVEMENT_FILTERS = [
+  { key: 'ALL', label: 'Todos' },
+  { key: 'GAMES', label: 'Partidas' },
+  { key: 'COLLECTION', label: 'Colección' },
+  { key: 'ROGUELITE', label: 'Roguelike' },
+  { key: 'DOMINATION', label: 'Dominio' },
+];
 
 export default function ProfilePage() {
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
@@ -33,6 +41,19 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
+  const achievements = profileData?.achievements || [];
+
+  // 🚀 Vercel Best Practice: rerender-derived-state-no-effect & rerender-memo
+  const unlockedAchievementsCount = useMemo(
+    () => achievements.filter((a) => a.isUnlocked).length,
+    [achievements]
+  );
+
+  const filteredAchievements = useMemo(() => {
+    if (achievementFilter === 'ALL') return achievements;
+    return achievements.filter((a) => a.category === achievementFilter);
+  }, [achievements, achievementFilter]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
@@ -53,14 +74,8 @@ export default function ProfilePage() {
     );
   }
 
-  const { user, stats, achievements, recentActivity } = profileData;
+  const { user, stats, recentActivity } = profileData;
   const progressPercentage = Math.min(100, (user.currentLevelProgress / user.xpForNextLevel) * 100);
-  const unlockedAchievementsCount = achievements.filter((a) => a.isUnlocked).length;
-
-  const filteredAchievements = achievements.filter((a) => {
-    if (achievementFilter === 'ALL') return true;
-    return a.category === achievementFilter;
-  });
 
   return (
     <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
@@ -154,7 +169,7 @@ export default function ProfilePage() {
       </div>
 
       {/* 3. PESTAÑA: ESTADÍSTICAS */}
-      {activeTab === 'STATS' && (
+      {activeTab === 'STATS' ? (
         <div className="w-full flex flex-col gap-2.5">
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl text-center shadow-md">
@@ -209,20 +224,14 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* 4. PESTAÑA: LOGROS */}
-      {activeTab === 'ACHIEVEMENTS' && (
+      {activeTab === 'ACHIEVEMENTS' ? (
         <div className="w-full flex flex-col gap-2.5">
           {/* Filtros */}
           <div className="flex gap-1 overflow-x-auto no-scrollbar pb-0.5">
-            {[
-              { key: 'ALL', label: 'Todos' },
-              { key: 'GAMES', label: 'Partidas' },
-              { key: 'COLLECTION', label: 'Colección' },
-              { key: 'ROGUELITE', label: 'Roguelike' },
-              { key: 'DOMINATION', label: 'Dominio' },
-            ].map((f) => (
+            {ACHIEVEMENT_FILTERS.map((f) => (
               <button
                 key={f.key}
                 onClick={() => setAchievementFilter(f.key)}
@@ -258,11 +267,11 @@ export default function ProfilePage() {
                         <h4 className="text-xs font-black text-white truncate">
                           {ach.title}
                         </h4>
-                        {ach.isUnlocked && (
+                        {ach.isUnlocked ? (
                           <span className="text-[9px] font-black text-emerald-400 font-mono">
                             ✅ Desbloqueado
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
                         {ach.description}
@@ -289,10 +298,10 @@ export default function ProfilePage() {
             })}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* 5. PESTAÑA: HISTORIAL */}
-      {activeTab === 'HISTORY' && (
+      {activeTab === 'HISTORY' ? (
         <div className="w-full flex flex-col gap-2">
           {recentActivity.length === 0 ? (
             <p className="text-center text-slate-500 text-xs py-8">
@@ -320,7 +329,7 @@ export default function ProfilePage() {
             ))
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

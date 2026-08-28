@@ -32,9 +32,65 @@ interface GameCardProps {
   onClick?: () => void;
 }
 
+// 📚 1. HOIST STATIC CONFIGS (Vercel Best Practice: rendering-hoist-jsx & js-cache-property-access)
+const RARITY_CONFIG: Record<
+  string,
+  {
+    border: string;
+    glow: string;
+    badge: string;
+    name: string;
+    holoType: 'legendary' | 'epic' | 'rare' | 'uncommon' | 'common';
+  }
+> = {
+  COMMON: {
+    border: 'border-zinc-500/80',
+    glow: 'shadow-zinc-500/10',
+    badge: 'bg-zinc-700 text-zinc-200 border-zinc-500',
+    name: 'Común',
+    holoType: 'common',
+  },
+  UNCOMMON: {
+    border: 'border-emerald-500/90',
+    glow: 'shadow-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.3)]',
+    badge: 'bg-emerald-950 text-emerald-300 border-emerald-500',
+    name: 'Inusual',
+    holoType: 'uncommon',
+  },
+  RARE: {
+    border: 'border-sky-400',
+    glow: 'shadow-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.4)]',
+    badge: 'bg-sky-950 text-sky-300 border-sky-400',
+    name: 'Rara',
+    holoType: 'rare',
+  },
+  EPIC: {
+    border: 'border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.5)]',
+    glow: 'shadow-purple-500/50',
+    badge: 'bg-purple-950 text-purple-200 border-purple-400',
+    name: 'Épica',
+    holoType: 'epic',
+  },
+  LEGENDARY: {
+    border: 'border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] ring-1 ring-amber-300/60',
+    glow: 'shadow-amber-400/60',
+    badge: 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black border-amber-300',
+    name: 'Legendaria',
+    holoType: 'legendary',
+  },
+};
+
+const SIZE_CLASSES = {
+  sm: 'w-24 md:w-32 aspect-[2/3]',
+  md: 'w-36 md:w-48 aspect-[2/3]',
+  lg: 'w-64 md:w-80 aspect-[2/3]',
+  full: 'w-full aspect-[2/3]',
+};
+
+const CATEGORY_MAP = new Map(OFFICIAL_CATEGORIES.map((c) => [c.key, `${c.icon} ${c.label}`]));
+
 const getCategoryLabel = (key: string) => {
-  const cat = OFFICIAL_CATEGORIES.find((c) => c.key === key);
-  return cat ? `${cat.icon} ${cat.label}` : key.replace(/_/g, ' ');
+  return CATEGORY_MAP.get(key) || key.replace(/_/g, ' ');
 };
 
 export default function GameCard({
@@ -50,62 +106,7 @@ export default function GameCard({
   const [glarePos, setGlarePos] = useState({ x: 50, y: 50, opacity: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // 5 Rarezas Oficiales
-  const rarityConfig: Record<
-    string,
-    {
-      border: string;
-      glow: string;
-      badge: string;
-      name: string;
-      holoType: 'legendary' | 'epic' | 'rare' | 'uncommon' | 'common';
-    }
-  > = {
-    COMMON: {
-      border: 'border-zinc-500/80',
-      glow: 'shadow-zinc-500/10',
-      badge: 'bg-zinc-700 text-zinc-200 border-zinc-500',
-      name: 'Común',
-      holoType: 'common',
-    },
-    UNCOMMON: {
-      border: 'border-emerald-500/90',
-      glow: 'shadow-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.3)]',
-      badge: 'bg-emerald-950 text-emerald-300 border-emerald-500',
-      name: 'Inusual',
-      holoType: 'uncommon',
-    },
-    RARE: {
-      border: 'border-sky-400',
-      glow: 'shadow-sky-400/40 shadow-[0_0_20px_rgba(56,189,248,0.4)]',
-      badge: 'bg-sky-950 text-sky-300 border-sky-400',
-      name: 'Rara',
-      holoType: 'rare',
-    },
-    EPIC: {
-      border: 'border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.5)]',
-      glow: 'shadow-purple-500/50',
-      badge: 'bg-purple-950 text-purple-200 border-purple-400',
-      name: 'Épica',
-      holoType: 'epic',
-    },
-    LEGENDARY: {
-      border: 'border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.6)] ring-1 ring-amber-300/60',
-      glow: 'shadow-amber-400/60',
-      badge: 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black border-amber-300',
-      name: 'Legendaria',
-      holoType: 'legendary',
-    },
-  };
-
-  const currentRarity = rarityConfig[card.rarity] || rarityConfig.COMMON;
-
-  const sizeClasses = {
-    sm: 'w-24 md:w-32 aspect-[2/3]',
-    md: 'w-36 md:w-48 aspect-[2/3]',
-    lg: 'w-64 md:w-80 aspect-[2/3]',
-    full: 'w-full aspect-[2/3]',
-  };
+  const currentRarity = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.COMMON;
 
   // Cálculo de Tilt 3D y brillo dinámico con el cursor
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -117,7 +118,7 @@ export default function GameCard({
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotX = ((y - centerY) / centerY) * -12; // Máximo 12 grados
+    const rotX = ((y - centerY) / centerY) * -12;
     const rotY = ((x - centerX) / centerX) * 12;
 
     setRotateX(rotX);
@@ -136,7 +137,7 @@ export default function GameCard({
 
   const handleCardClick = () => {
     if (isFlippable) {
-      setIsFlipped(!isFlipped);
+      setIsFlipped((prev) => !prev);
     }
     if (onClick) {
       onClick();
@@ -149,7 +150,7 @@ export default function GameCard({
       onClick={handleCardClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative select-none cursor-pointer transition-transform duration-200 ease-out transform-gpu ${sizeClasses[size]}`}
+      className={`relative select-none cursor-pointer transition-transform duration-200 ease-out transform-gpu ${SIZE_CLASSES[size]}`}
       style={{
         perspective: '1200px',
       }}
@@ -172,7 +173,7 @@ export default function GameCard({
           className={`absolute inset-0 w-full h-full rounded-2xl overflow-hidden border-2 bg-slate-950 shadow-2xl flex flex-col justify-between p-2.5 [backface-visibility:hidden] ${currentRarity.border} ${currentRarity.glow}`}
         >
           {/* SHADER HOLOGRÁFICO (LEGENDARIA) */}
-          {currentRarity.holoType === 'legendary' && (
+          {currentRarity.holoType === 'legendary' ? (
             <div
               className="absolute inset-0 pointer-events-none z-20 mix-blend-color-dodge transition-opacity duration-300 opacity-60"
               style={{
@@ -181,10 +182,10 @@ export default function GameCard({
                 backgroundPosition: `${glarePos.x}% ${glarePos.y}%`,
               }}
             />
-          )}
+          ) : null}
 
           {/* SHADER CÓSMICO (ÉPICA) */}
-          {currentRarity.holoType === 'epic' && (
+          {currentRarity.holoType === 'epic' ? (
             <div
               className="absolute inset-0 pointer-events-none z-20 mix-blend-screen transition-opacity duration-300 opacity-45"
               style={{
@@ -192,7 +193,7 @@ export default function GameCard({
                 backgroundPosition: `${glarePos.x}% ${glarePos.y}%`,
               }}
             />
-          )}
+          ) : null}
 
           {/* DESTELLO DE LUZ INTERACTIVO (GLARE SHIMMER) */}
           <div
@@ -239,11 +240,11 @@ export default function GameCard({
               {card.title}
             </h3>
 
-            {card.powerUpAction && (
+            {card.powerUpAction ? (
               <div className="mt-1 text-[9px] font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded px-1.5 py-0.5 text-center truncate">
                 ⚡ {card.powerUpAction.replace(/_/g, ' ')}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -295,7 +296,7 @@ export default function GameCard({
             )}
 
             {/* Categorías asignadas */}
-            {card.categories && card.categories.length > 0 && (
+            {card.categories && card.categories.length > 0 ? (
               <div className="mt-1.5">
                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">
                   Categorías:
@@ -311,7 +312,7 @@ export default function GameCard({
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
 
           <p className="text-[8px] text-center text-slate-500 font-mono italic">

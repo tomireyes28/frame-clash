@@ -6,6 +6,17 @@ import { missionService, Mission } from '@/services/mission.service';
 import { motion, Variants } from 'framer-motion';
 import Link from 'next/link';
 
+// 📚 Vercel Best Practice: rendering-hoist-jsx (Constantes fuera de render)
+const CONTAINER_VARIANTS: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+
+const CARD_VARIANTS: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0 },
+};
+
 export default function MissionsPage() {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,16 +59,6 @@ export default function MissionsPage() {
     );
   }
 
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-  };
-
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0 },
-  };
-
   return (
     <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
       {/* ENCABEZADO */}
@@ -75,7 +76,7 @@ export default function MissionsPage() {
 
       {/* LISTA DE MISIONES */}
       <motion.div
-        variants={containerVariants}
+        variants={CONTAINER_VARIANTS}
         initial="hidden"
         animate="show"
         className="w-full flex flex-col gap-2.5"
@@ -88,7 +89,7 @@ export default function MissionsPage() {
           return (
             <motion.div
               key={mission.id}
-              variants={cardVariants}
+              variants={CARD_VARIANTS}
               className={`relative overflow-hidden rounded-2xl border p-3.5 transition shadow-sm ${
                 isDone
                   ? 'bg-gradient-to-r from-emerald-950/40 to-slate-900 border-emerald-500/50'

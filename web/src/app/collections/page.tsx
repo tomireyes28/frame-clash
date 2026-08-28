@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 import { collectionsService, UserCollectionItem } from '@/services/collections.service';
 import GameCard, { CardData } from '@/components/game/GameCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { soundManager } from '@/utils/audio';
 
 export default function CollectionsPage() {
@@ -34,6 +33,7 @@ export default function CollectionsPage() {
     loadCollections();
   }, []);
 
+  // 🚀 Vercel Best Practice: bundle-defer-third-party (Carga dinámica de confetti)
   const handleClaimReward = async (e: React.MouseEvent, collectionId: string) => {
     e.stopPropagation();
     setClaimingId(collectionId);
@@ -42,12 +42,15 @@ export default function CollectionsPage() {
     try {
       const res = await collectionsService.claimReward(collectionId);
       soundManager.playVictory();
+
+      const confetti = (await import('canvas-confetti')).default;
       confetti({
         particleCount: 150,
         spread: 80,
         origin: { y: 0.6 },
         colors: ['#F59E0B', '#10B981', '#38BDF8', '#8B5CF6'],
       });
+
       setSuccessMessage(res.message);
       await loadCollections();
     } catch (err: unknown) {
@@ -88,7 +91,7 @@ export default function CollectionsPage() {
       </div>
 
       {/* BANNER DE ÉXITO */}
-      {successMessage && (
+      {successMessage ? (
         <motion.div
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
@@ -97,7 +100,7 @@ export default function CollectionsPage() {
           <span>🎉 {successMessage}</span>
           <button onClick={() => setSuccessMessage(null)} className="text-xs text-emerald-400">✕</button>
         </motion.div>
-      )}
+      ) : null}
 
       {/* ESTADÍSTICAS MÓVILES */}
       <div className="w-full grid grid-cols-2 gap-2 mb-3 bg-slate-900/90 border border-slate-800 p-2.5 rounded-2xl text-center shadow-md">
@@ -147,11 +150,11 @@ export default function CollectionsPage() {
                       <h3 className="text-sm font-black text-white uppercase tracking-wider">
                         {set.name}
                       </h3>
-                      {set.description && (
+                      {set.description ? (
                         <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
                           {set.description}
                         </p>
-                      )}
+                      ) : null}
                     </div>
 
                     <span className="bg-slate-950 px-2 py-0.5 rounded-full border border-slate-800 text-[10px] font-mono font-bold text-amber-400 shrink-0 ml-1">
@@ -181,11 +184,11 @@ export default function CollectionsPage() {
                             {card.title}
                           </div>
                         )}
-                        {!card.isOwned && (
+                        {!card.isOwned ? (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-[10px]">
                             🔒
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     ))}
                   </div>
@@ -209,7 +212,7 @@ export default function CollectionsPage() {
                     />
                   </div>
 
-                  {set.isCompleted && !set.isClaimed && (
+                  {set.isCompleted && !set.isClaimed ? (
                     <button
                       disabled={claimingId === set.id}
                       onClick={(e) => handleClaimReward(e, set.id)}
@@ -217,13 +220,13 @@ export default function CollectionsPage() {
                     >
                       {claimingId === set.id ? 'Reclamando...' : `🎁 ¡Reclamar ${rewardLabel}!`}
                     </button>
-                  )}
+                  ) : null}
 
-                  {set.isClaimed && (
+                  {set.isClaimed ? (
                     <div className="w-full py-1 bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold text-center rounded-xl font-mono">
                       ✅ Recompensa Reclamada
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </motion.div>
             );
@@ -233,7 +236,7 @@ export default function CollectionsPage() {
 
       {/* MODAL DETALLADO */}
       <AnimatePresence>
-        {selectedSet && (
+        {selectedSet ? (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -277,20 +280,20 @@ export default function CollectionsPage() {
                       }`}
                     >
                       <GameCard card={cardData} size="full" isFlippable={card.isOwned} />
-                      {!card.isOwned && (
+                      {!card.isOwned ? (
                         <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center p-1 text-center z-20">
                           <span className="text-lg">🔒</span>
                           <span className="text-[9px] font-bold text-slate-300 line-clamp-2">
                             {card.title}
                           </span>
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })}
               </div>
 
-              {selectedSet.isCompleted && !selectedSet.isClaimed && (
+              {selectedSet.isCompleted && !selectedSet.isClaimed ? (
                 <button
                   disabled={claimingId === selectedSet.id}
                   onClick={(e) => handleClaimReward(e, selectedSet.id)}
@@ -298,10 +301,10 @@ export default function CollectionsPage() {
                 >
                   {claimingId === selectedSet.id ? 'Reclamando...' : '🎁 ¡Reclamar Recompensa!'}
                 </button>
-              )}
+              ) : null}
             </motion.div>
           </div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );

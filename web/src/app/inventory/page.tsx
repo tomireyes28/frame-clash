@@ -1,13 +1,14 @@
 // web/src/app/inventory/page.tsx
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useDeferredValue } from 'react';
 import { inventoryService, InventoryCard } from '@/services/inventory.service';
 import { motion, AnimatePresence } from 'framer-motion';
 import GameCard, { CardData } from '@/components/game/GameCard';
 import { OFFICIAL_CATEGORIES } from '@/utils/categories';
 import Link from 'next/link';
 
+// 📚 Vercel Best Practice: rendering-hoist-jsx
 const RARITY_TABS = [
   { key: 'ALL', label: 'Todas', badge: 'bg-slate-800 text-white border-slate-700' },
   { key: 'COMMON', label: 'Común', badge: 'bg-zinc-800 text-zinc-300 border-zinc-500' },
@@ -24,6 +25,9 @@ export default function InventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCard, setSelectedCard] = useState<InventoryCard | null>(null);
+
+  // 🚀 Vercel Best Practice: rerender-use-deferred-value (Búsqueda fluida sin micro-stutters)
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const loadInventory = async () => {
     try {
@@ -43,6 +47,8 @@ export default function InventoryPage() {
 
   const filteredCards = useMemo(() => {
     const cardList = Array.isArray(cards) ? cards : [];
+    const query = deferredSearchQuery.trim().toLowerCase();
+
     return cardList.filter((card) => {
       if (selectedRarity !== 'ALL' && card.rarity !== selectedRarity) {
         return false;
@@ -51,13 +57,13 @@ export default function InventoryPage() {
         const matchesCategory = card.categories?.some((c) => c.key === selectedCategory);
         if (!matchesCategory) return false;
       }
-      if (searchQuery.trim().length > 0) {
-        const matchTitle = card.title.toLowerCase().includes(searchQuery.toLowerCase());
+      if (query.length > 0) {
+        const matchTitle = card.title.toLowerCase().includes(query);
         if (!matchTitle) return false;
       }
       return true;
     });
-  }, [cards, selectedRarity, selectedCategory, searchQuery]);
+  }, [cards, selectedRarity, selectedCategory, deferredSearchQuery]);
 
   if (isLoading) {
     return (
@@ -181,7 +187,7 @@ export default function InventoryPage() {
 
       {/* MODAL DE DETALLE DE CARTA */}
       <AnimatePresence>
-        {selectedCard && (
+        {selectedCard ? (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -229,7 +235,7 @@ export default function InventoryPage() {
               </div>
             </motion.div>
           </div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );

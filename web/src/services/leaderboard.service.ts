@@ -9,6 +9,7 @@ export interface LeaderboardPlayer {
   name: string;
   image: string | null;
   level: number;
+  title?: string | null;
   primaryMetric: string;
   secondaryMetric?: string;
   isCurrentUser?: boolean;
