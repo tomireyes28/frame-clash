@@ -26,13 +26,11 @@ enum Difficulty {
 }
 
 enum Rarity {
-  COMMON // Común (Gris) - Condición estricta de categoría
-  UNCOMMON // Poco Común (Verde) - Condición de categoría
-  RARE // Rara (Azul) - Condición suave / "Si NO es categoría X"
-  EPIC // Épica (Púrpura) - Condición de resolución o sin restricción
-  LEGENDARY // Legendaria (Dorado) - Sin restricción
-  MYTHIC // Mítica (Holográfico) - Sin restricción + efecto amplificado
-  UNIQUE_LEGENDARY // Legendaria Única (Recompensa exclusiva de Dominio)
+  COMMON // Común (Gris)
+  UNCOMMON // Inusual (Verde)
+  RARE // Rara (Celeste)
+  EPIC // Épica (Violeta)
+  LEGENDARY // Legendaria (Naranja / Dorado)
 }
 
 enum GameMode {
