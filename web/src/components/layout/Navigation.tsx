@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Dices, Crown, Flame, Play, Sparkles, Layers, ShoppingBag, Target, Trophy } from 'lucide-react';
+import { Dices, Crown, Flame, Play, Sparkles, Layers, ShoppingBag, Target, Trophy, User } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Draft', href: '/play/draft', icon: Dices },
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { name: 'Tienda', href: '/shop', icon: ShoppingBag },
   { name: 'Misiones', href: '/missions', icon: Target },
   { name: 'Ranking', href: '/leaderboard', icon: Trophy },
+  { name: 'Perfil', href: '/profile', icon: User },
 ];
 
 export default function Navigation() {
@@ -42,8 +43,8 @@ export default function Navigation() {
                   isActive ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Icon size={15} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[7px] tracking-wider mt-0.5">{item.name}</span>
+                <Icon size={14} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[6.5px] tracking-wider mt-0.5">{item.name}</span>
               </Link>
             );
           })}
@@ -84,15 +85,18 @@ export default function Navigation() {
         </div>
 
         {/* Perfil del Usuario en Desktop */}
-        <div className="mt-auto pt-3 border-t border-slate-800 flex items-center gap-3">
+        <Link
+          href="/profile"
+          className="mt-auto pt-3 border-t border-slate-800 flex items-center gap-3 hover:bg-slate-900 p-2 rounded-2xl transition"
+        >
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 font-black flex items-center justify-center text-xs shadow-md">
             🎬
           </div>
           <div className="truncate">
-            <p className="text-xs font-bold text-slate-200 truncate">Cinéfilo</p>
-            <p className="text-[10px] text-amber-400/90 font-mono">Nivel 1</p>
+            <p className="text-xs font-bold text-slate-200 truncate">Mi Perfil</p>
+            <p className="text-[10px] text-amber-400/90 font-mono">Ver Logros ➔</p>
           </div>
-        </div>
+        </Link>
       </nav>
     </>
   );
