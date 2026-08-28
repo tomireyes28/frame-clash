@@ -49,6 +49,12 @@ export default function Home() {
             <p className="text-emerald-400 font-bold text-xs">✅ Sesión iniciada y sincronizada</p>
             <div className="flex flex-col gap-2">
               <button
+                onClick={() => router.push('/play/pvp-live')}
+                className="w-full py-3 bg-gradient-to-r from-red-600 via-orange-500 to-amber-400 hover:from-red-500 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-red-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2 animate-pulse"
+              >
+                ⚡ Coliseo PvP en Vivo (WebSockets)
+              </button>
+              <button
                 onClick={() => router.push('/play/pvp-async')}
                 className="w-full py-3 bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-rose-950/50 transition-all hover:scale-102 cursor-pointer flex items-center justify-center gap-2"
               >
