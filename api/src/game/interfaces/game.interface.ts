@@ -1,4 +1,5 @@
 // api/src/game/interfaces/game.interface.ts
+import { Difficulty } from '@prisma/client';
 
 export interface PowerUpPayload {
   id: string;
@@ -11,7 +12,10 @@ export interface SafeQuestionPayload {
   id: string;
   text: string;
   options: string[];
-  difficulty: string;
+  difficulty: Difficulty;
+  imageUrl?: string | null;
+  block?: number | null;
+  typeNumber?: number | null;
   answerHash: string;
 }
 
