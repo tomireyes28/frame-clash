@@ -7,6 +7,12 @@
       "skillPath": "skills/deploy-to-vercel/SKILL.md",
       "computedHash": "03e0eaaa9bf13ba1e7ffa387f5893de6f324c0868c627001f179395a8feaa7c9"
     },
+    "plugin-creator": {
+      "source": "openai/plugins",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/plugin-creator/SKILL.md",
+      "computedHash": "7f28f0a0ccf06e77b11ced98e4ff85330d1ffb191c4c9388a6a4a6ff4bb489e9"
+    },
     "vercel-cli-with-tokens": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
