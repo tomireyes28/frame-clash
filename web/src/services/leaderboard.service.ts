@@ -1,32 +1,46 @@
-// src/services/leaderboard.service.ts
+// web/src/services/leaderboard.service.ts
+import Cookies from 'js-cookie';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-export interface RankedPlayer {
+export interface LeaderboardPlayer {
   rank: number;
   userId: string;
-  score: number;
   name: string;
   image: string | null;
+  level: number;
+  primaryMetric: string;
+  secondaryMetric?: string;
+  isCurrentUser?: boolean;
 }
 
-export interface LeaderboardResponse {
-  success: boolean;
-  mode: string;
-  data: RankedPlayer[];
+export interface LeaderboardResult {
+  type: string;
+  title: string;
+  description: string;
+  players: LeaderboardPlayer[];
+  currentUser?: LeaderboardPlayer | null;
 }
+
+const getAuthHeaders = () => {
+  const token = Cookies.get('frameclash_token');
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 export const leaderboardService = {
-  getLeaderboard: async (mode: string = 'ARCADE'): Promise<RankedPlayer[]> => {
-    // Usamos 'no-store' porque el ranking en vivo cambia a cada segundo
-    const response = await fetch(`${API_URL}/leaderboard?mode=${mode}`, {
-      cache: 'no-store'
+  getLeaderboard: async (type: string = 'SCORE'): Promise<LeaderboardResult> => {
+    const response = await fetch(`${API_URL}/leaderboard?type=${type}`, {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
     });
-    
+
     if (!response.ok) {
       throw new Error('Error al cargar el ranking global.');
     }
-    
-    const json: LeaderboardResponse = await response.json();
-    return json.data;
-  }
+
+    return response.json();
+  },
 };
