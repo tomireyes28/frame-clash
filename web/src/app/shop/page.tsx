@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import ShopHeader from '@/components/shop/ShopHeader';
 import PackDisplay from '@/components/shop/PackDisplay';
 import PackOpeningModal from '@/components/shop/PackOpeningModal';
+import { soundManager } from '@/utils/audio';
 
 // 📚 Los 5 Sobres Oficiales con drop rates y garantías
 const AVAILABLE_PACKS = [
@@ -57,31 +58,67 @@ export default function ShopPage() {
   const [error, setError] = useState<string | null>(null);
   const [packResult, setPackResult] = useState<BuyPackResponse | null>(null);
   const [activePackName, setActivePackName] = useState<string>('Oro');
-  const [currentCoins, setCurrentCoins] = useState<number | null>(null);
+  const [currentCoins, setCurrentCoins] = useState<number>(50000);
 
   useEffect(() => {
-    shopService
-      .getUserBalance()
-      .then((coins) => setCurrentCoins(coins))
-      .catch(() => setCurrentCoins(0));
+    // Cargar monedas guardadas o valor por defecto
+    const saved = localStorage.getItem('frameclash_demo_coins');
+    if (saved) {
+      setCurrentCoins(Number(saved));
+    } else {
+      shopService
+        .getUserBalance()
+        .then((coins) => {
+          const balance = coins > 0 ? coins : 50000;
+          setCurrentCoins(balance);
+          localStorage.setItem('frameclash_demo_coins', String(balance));
+        })
+        .catch(() => {
+          setCurrentCoins(50000);
+          localStorage.setItem('frameclash_demo_coins', '50000');
+        });
+    }
   }, []);
 
+  const handleClaimFreeCoins = async () => {
+    soundManager.playCoinTally();
+    const newBalance = currentCoins + 50000;
+    setCurrentCoins(newBalance);
+    localStorage.setItem('frameclash_demo_coins', String(newBalance));
+
+    const confetti = (await import('canvas-confetti')).default;
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.3 },
+      colors: ['#F59E0B', '#FBBF24', '#FDE047'],
+    });
+  };
+
   const handleBuyPack = async (packId: string) => {
+    const pack = AVAILABLE_PACKS.find((p) => p.id === packId);
+    if (!pack) return;
+
+    if (currentCoins < pack.price) {
+      setError(`Necesitás ${pack.price} monedas. ¡Reclamá monedas gratis arriba para abrirlo!`);
+      return;
+    }
+
     setLoadingPackId(packId);
     setError(null);
-
-    const pack = AVAILABLE_PACKS.find((p) => p.id === packId);
-    if (pack) setActivePackName(pack.name);
+    setActivePackName(pack.name);
 
     try {
       const result = await shopService.buyPack(packId);
+      const remainingCoins = Math.max(0, currentCoins - pack.price);
+      setCurrentCoins(remainingCoins);
+      localStorage.setItem('frameclash_demo_coins', String(remainingCoins));
       setPackResult(result);
-      setCurrentCoins(result.newBalance);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Error al conectar con la tienda.');
+        setError('Error al procesar la apertura del sobre.');
       }
     } finally {
       setLoadingPackId(null);
@@ -90,19 +127,23 @@ export default function ShopPage() {
 
   return (
     <div className="w-full flex flex-col items-center p-3 pb-8 font-sans">
-      <ShopHeader />
+      <ShopHeader
+        currentCoins={currentCoins}
+        onClaimFreeCoins={handleClaimFreeCoins}
+      />
 
       {/* Alertas de error */}
       {error ? (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-3 w-full bg-rose-950/60 border border-rose-600 text-rose-200 p-3 rounded-2xl text-center text-xs font-bold"
+          className="mb-3 w-full bg-rose-950/80 border-2 border-rose-500/80 text-rose-200 p-3 rounded-2xl text-center text-xs font-bold shadow-lg"
         >
           🚨 {error}
         </motion.div>
       ) : null}
 
+      {/* CATÁLOGO DE SOBRES FOIL 3D */}
       <div className="w-full flex flex-col gap-2.5">
         {AVAILABLE_PACKS.map((pack) => (
           <PackDisplay
@@ -114,10 +155,7 @@ export default function ShopPage() {
             colorClasses={pack.colorClasses}
             emoji={pack.emoji}
             isLoading={loadingPackId === pack.id}
-            disabled={
-              (loadingPackId !== null && loadingPackId !== pack.id) ||
-              (currentCoins !== null && currentCoins < pack.price)
-            }
+            disabled={loadingPackId !== null && loadingPackId !== pack.id}
             onBuy={handleBuyPack}
           />
         ))}
